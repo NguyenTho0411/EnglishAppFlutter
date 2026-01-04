@@ -1,11 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
@@ -21,29 +20,23 @@ import '../../../../../app/widgets/timer_count_down.dart';
 import '../../../../../app/widgets/widgets.dart';
 import '../../../../../core/extensions/build_context.dart';
 import '../../../../../core/extensions/color.dart';
-import '../../../../../core/extensions/list.dart';
 import '../../../../../injection_container.dart';
 import '../../../../authentication/presentation/blocs/auth/auth_bloc.dart';
 import '../../../../word/domain/entities/word_entity.dart';
+import '../../../../word/presentation/cubits/word_progress/word_progress_cubit.dart';
+import '../../../domain/entities/quiz_entity.dart';
+import '../../../domain/entities/quiz_type.dart';
 import '../../cubits/quiz/game_quiz_cubit.dart';
 
-class QuizEntity {
-  final String word;
-  final String question;
-  final List<String> answers;
-  String selectedAnswer;
-  QuizEntity({
-    required this.word,
-    required this.question,
-    required this.answers,
-    this.selectedAnswer = '',
-  });
-}
-
 class GameQuizPage extends StatefulWidget {
-  const GameQuizPage({super.key, required this.words});
+  const GameQuizPage({
+    super.key,
+    required this.words,
+    this.quizType = QuizType.meaningToWord,
+  });
 
   final List<WordEntity> words;
+  final QuizType quizType;
 
   @override
   State<GameQuizPage> createState() => _GameQuizPageState();
@@ -54,34 +47,36 @@ class _GameQuizPageState extends State<GameQuizPage> {
   final ValueNotifier<int> selectedIndex = ValueNotifier(-1);
   late List<QuizEntity> quizs;
   late int timeDuration;
+  final FlutterTts _flutterTts = FlutterTts();
 
   @override
   void initState() {
     super.initState();
-
+    _initTts();
     timeDuration = AppValueConst.timeForQuiz * widget.words.length;
-    final list = widget.words.map((e) => e.word).toList();
-    quizs = List<QuizEntity>.generate(
-      widget.words.length,
-      (index) {
-        final answers = List<String>.from(list)
-          ..remove(widget.words[index].word)
-          ..shuffle();
-        final meaningEntity = widget.words[index].meanings.getRandom ??
-            widget.words[index].meanings.first;
-
-        return QuizEntity(
-          word: widget.words[index].word,
-          question:
-              "(${meaningEntity.type.toLowerCase()}) ${meaningEntity.meaning}",
-          answers: answers.take(3).toList()
-            ..insert(
-              Random().nextInt(4),
-              widget.words[index].word,
-            ),
-        );
-      },
+    
+    // Generate quizzes based on selected type
+    quizs = QuizEntity.generateQuizzes(
+      type: widget.quizType,
+      words: widget.words,
     );
+  }
+
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage('en-US');
+    await _flutterTts.setSpeechRate(0.5);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> _speak(String text) async {
+    await _flutterTts.speak(text);
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
   }
 
   _onCompleteQuiz(BuildContext context) async {
@@ -92,11 +87,24 @@ class _GameQuizPageState extends State<GameQuizPage> {
 
     final uid = context.read<AuthBloc>().state.user?.uid;
     if (uid != null) {
+      // Update game points and gold
       await context.read<GameQuizCubit>().calculateResult(
             uid: uid,
             point: correct,
             gold: gold,
           );
+      
+      // Update word progress for SRS system
+      final wordProgressCubit = context.read<WordProgressCubit>();
+      for (var quiz in quizs) {
+        final isCorrect = quiz.selectedAnswer == quiz.word;
+        await wordProgressCubit.updateWordProgress(
+          uid: uid,
+          wordId: quiz.word,
+          word: quiz.word,
+          isCorrect: isCorrect,
+        );
+      }
     }
   }
 
@@ -304,30 +312,68 @@ class _GameQuizPageState extends State<GameQuizPage> {
           ],
         ),
         builder: (context, current, row) {
+          final currentQuiz = quizs[current];
+          final isListeningQuiz = currentQuiz.type == QuizType.listening;
+          
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               row!,
               const Gap(height: 10),
-              TextCustom(
-                "${quizs[current].question}.",
-                textAlign: TextAlign.justify,
-                maxLines: 10,
-              ),
+              
+              // Show listening button for listening quiz
+              if (isListeningQuiz) ...[
+                Center(
+                  child: GestureDetector(
+                    onTap: () => _speak(currentQuiz.word),
+                    child: Container(
+                      padding: EdgeInsets.all(20.w),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: context.colors.blue500,
+                        boxShadow: [
+                          BoxShadow(
+                            color: context.colors.blue500.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.volume_up,
+                        size: 48.w,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const Gap(height: 10),
+                Center(
+                  child: TextCustom(
+                    "Tap to listen",
+                    style: context.textStyle.caption.grey,
+                  ),
+                ),
+              ] else
+                TextCustom(
+                  "${currentQuiz.question}.",
+                  textAlign: TextAlign.justify,
+                  maxLines: 10,
+                ),
               const Gap(height: 15),
               ValueListenableBuilder(
                 valueListenable: selectedIndex,
                 builder: (context, selected, _) {
                   return Column(
-                    children: quizs[current]
+                    children: currentQuiz
                         .answers
                         .mapIndexed((index, e) => SelectOptionTileWidget(
                               onTap: () {
-                                quizs[current].selectedAnswer = e;
+                                currentQuiz.selectedAnswer = e;
                                 selectedIndex.value = index;
                               },
-                              isSelected: quizs[current].selectedAnswer == e ||
+                              isSelected: currentQuiz.selectedAnswer == e ||
                                   selected == index,
                               style: context.textStyle.bodyS.bw.bold,
                               text: e.toLowerCase(),

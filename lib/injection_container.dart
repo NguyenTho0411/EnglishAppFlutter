@@ -62,12 +62,23 @@ import 'features/user/user_profile/presentation/cubits/known/known_word_cubit.da
 import 'features/user/user_profile/presentation/cubits/leader_board/leader_board_cubit.dart';
 import 'features/user/user_profile/presentation/cubits/user_data/user_data_cubit.dart';
 import 'features/word/data/data_sources/word_local_data_source.dart';
+import 'features/word/data/data_sources/word_progress_remote_data_source.dart';
+import 'features/word/data/repositories/word_progress_repository_impl.dart';
 import 'features/word/data/repositories/word_repository_impl.dart';
+import 'features/word/domain/repositories/word_progress_repository.dart';
 import 'features/word/domain/repositories/word_repository.dart';
+import 'features/word/domain/usecases/get_all_word_progress.dart';
 import 'features/word/domain/usecases/get_all_words.dart';
+import 'features/word/domain/usecases/save_word_progress.dart';
 import 'features/word/domain/usecases/search_words.dart';
+import 'features/word/domain/usecases/watch_word_progress.dart';
 import 'features/word/presentation/blocs/search_word/search_word_bloc.dart';
 import 'features/word/presentation/blocs/word_list/word_list_cubit.dart';
+import 'features/word/presentation/cubits/word_progress/word_progress_cubit.dart';
+import 'features/exam/data/data_sources/exam_remote_data_source.dart';
+import 'features/exam/data/repositories/exam_repository_impl.dart';import 'features/exam/data/services/firestore_exam_service.dart';import 'features/exam/domain/repositories/exam_repository.dart';
+import 'features/exam/presentation/cubits/exam_cubit.dart';
+import 'features/ai_tutor/data/services/openai_service.dart';
 
 final sl = GetIt.instance;
 
@@ -112,16 +123,26 @@ Future<void> setUpServiceLocator() async {
   sl.registerLazySingleton<WordLocalDataSource>(
     () => WordLocalDataSourceImpl(),
   );
+  sl.registerLazySingleton<WordProgressRemoteDataSource>(
+    () => WordProgressRemoteDataSourceImpl(sl()),
+  );
   // Repository
   sl.registerLazySingleton<WordRepository>(
     () => WordRepositoryImpl(localDataSource: sl()),
   );
+  sl.registerLazySingleton<WordProgressRepository>(
+    () => WordProgressRepositoryImpl(sl()),
+  );
   // Usecase
   sl.registerLazySingleton(() => GetAllWordsUsecase(repository: sl()));
   sl.registerLazySingleton(() => SearchWordsUsecase(repository: sl()));
+  sl.registerLazySingleton(() => SaveWordProgressUsecase(sl()));
+  sl.registerLazySingleton(() => GetAllWordProgressUsecase(sl()));
+  sl.registerLazySingleton(() => WatchWordProgressUsecase(sl()));
   // Bloc
   sl.registerFactory(() => WordListCubit(sl()));
   sl.registerFactory(() => SearchWordBloc(sl()));
+  sl.registerFactory(() => WordProgressCubit(sl(), sl(), sl()));
 
   //! Features - authentication
   // Data source
@@ -231,4 +252,28 @@ Future<void> setUpServiceLocator() async {
   sl.registerLazySingleton(() => UpdateUserGoldUsecase(sl()));
   // Cubit
   sl.registerFactory(() => GameQuizCubit(sl(), sl()));
+
+  //! Feature - Exam (IELTS/TOEIC)
+  // Data source
+  sl.registerLazySingleton<ExamRemoteDataSource>(
+    () => ExamRemoteDataSource(sl()),
+  );  // Services
+  sl.registerLazySingleton<FirestoreExamService>(
+    () => FirestoreExamService(),
+  );  // Repository
+  sl.registerLazySingleton<ExamRepository>(
+    () => ExamRepositoryImpl(sl()),
+  );
+  // Cubit
+  sl.registerFactory(() => ExamCubit(sl()));
+
+  //! Feature - AI Tutor
+  // Service
+  sl.registerLazySingleton<OpenAIService>(
+    () => OpenAIService(
+      // TODO: Move to environment variable for security
+      apiKey: const String.fromEnvironment('OPENAI_API_KEY', 
+        defaultValue: 'sk-proj-pCjjV6ac...'), // Replace with actual key
+    ),
+  );
 }

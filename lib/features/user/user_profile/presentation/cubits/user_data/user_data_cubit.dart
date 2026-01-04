@@ -35,11 +35,20 @@ class UserDataCubit extends Cubit<UserDataState> {
 
   void initDataStream(String? uid) {
     if (uid.isNotNullOrEmpty) {
-      _streamSubscription ??= getUserDataUsecase(uid!).listen((entity) {
-        if (entity != null) {
-          emit(UserDataLoadedState(entity));
-        }
-      });
+      _streamSubscription ??= getUserDataUsecase(uid!).listen(
+        (entity) {
+          if (entity != null) {
+            emit(UserDataLoadedState(entity));
+          } else {
+            print('⚠️ UserDataCubit: User document not found for $uid');
+            emit(UserDataEmptyState());
+          }
+        },
+        onError: (error) {
+          print('⛔ UserDataCubit error: $error');
+          emit(UserDataEmptyState());
+        },
+      );
     }
   }
 

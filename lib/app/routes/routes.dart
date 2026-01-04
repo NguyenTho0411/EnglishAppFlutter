@@ -13,8 +13,23 @@ class AppRoutes {
   static const cart = '/cart';
 
   static const quiz = '/quiz';
+  static const quizTypeSelection = '/quizTypeSelection';
   static const quizSummery = '/quizSummery';
   static const slidingPuzzle = '/slidingPuzzle';
+  static const dailyStudy = '/dailyStudy';
+  static const studySession = '/studySession';
+
+  // IELTS/TOEIC Exam routes
+  static const examHome = '/examHome';
+  static const readingPractice = '/readingPractice';
+  static const listeningPractice = '/listeningPractice';
+  static const writingPractice = '/writingPractice';
+  static const speakingPractice = '/speakingPractice';
+  static const mockTest = '/mockTest';
+  static const mockTestExecution = '/mockTestExecution';
+  static const mockTestResults = '/mockTestResults';
+  static const examProgress = '/examProgress';
+  static const aiTutor = '/aiTutor';
 
   static const main = '/main';
   static const home = '$main/home';

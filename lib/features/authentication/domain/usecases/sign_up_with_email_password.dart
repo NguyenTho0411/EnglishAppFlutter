@@ -51,15 +51,24 @@ class SignUpWithEmailPasswordUsecase
 
       final addUserResult = await userRepository.addUserProfile(userEntity);
 
-      return await addUserResult.fold((fail) => Left(fail), (_) async {
+      return await addUserResult.fold((fail) {
+        print('🔴 SignUp ERROR - Failed to create user: ${fail.message}');
+        return Left(fail);
+      }, (_) async {
         final addCartRes = await cartRepository.createCart(
           authEntity.uid,
           CartEntity.empty.copyWith(id: authEntity.uid),
         );
 
         return addCartRes.fold(
-          (fail) => Left(fail),
-          (_) => Right(authEntity.copyWith(isNewUser: false)),
+          (fail) {
+            print('🔴 SignUp ERROR - Failed to create cart: ${fail.message}');
+            return Left(fail);
+          },
+          (_) {
+            print('✅ SignUp SUCCESS - User and cart created');
+            return Right(authEntity.copyWith(isNewUser: false));
+          },
         );
       });
     });

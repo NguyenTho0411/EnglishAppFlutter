@@ -10,6 +10,7 @@ import '../../../../../app/widgets/select_option_tile.dart';
 import '../../../../../app/widgets/widgets.dart';
 import '../../../../../core/extensions/build_context.dart';
 import '../../../../../core/extensions/color.dart';
+import '../../../domain/entities/quiz_entity.dart';
 import 'game_quiz_page.dart';
 
 class GameQuizSummeryPage extends StatelessWidget {

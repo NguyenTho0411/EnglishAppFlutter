@@ -8,6 +8,7 @@ import '../../../../../../app/themes/app_text_theme.dart';
 import '../../../../../../app/translations/translations.dart';
 import '../../../../../../app/widgets/bottom_sheet/dynamic_bottom_sheet.dart';
 import '../../../../../../app/widgets/pushable_button.dart';
+import '../../../../../../app/widgets/text.dart';
 import '../../../../../../core/extensions/build_context.dart';
 import '../../../../../../core/extensions/date_time.dart';
 import '../../../../../../core/extensions/list.dart';
@@ -34,58 +35,91 @@ class HomeCheckInBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UserDataCubit, UserDataState>(
       builder: (context, state) {
-        bool checkedIn = false;
-        Map<DateTime, int> datasets = {};
-        if (state is UserDataLoadedState) {
-          if (state.entity.attendance.isNotNullOrEmpty) {
-            state.entity.attendance?.toSet().forEach((date) {
-              datasets[date.resetTime] = 1;
-              if (!checkedIn) {
-                checkedIn = date.eqvYearMonthDay(DateTime.now());
-              }
-            });
-          }
+        // Show loading only for empty state, not for error state
+        if (state is UserDataEmptyState) {
           return DynamicBottomSheetCustom(
             showDragHandle: true,
-            padding: EdgeInsets.symmetric(
-              horizontal: 15.w,
-            ).copyWith(bottom: 25.h),
+            padding: EdgeInsets.symmetric(horizontal: 15.w).copyWith(bottom: 25.h),
             children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return HeatMapCalendar(
-                    showColorTip: false,
-                    datasets: datasets,
-                    // flexible: true,
-                    size: (constraints.maxWidth - 30.w) / 7 - 3.w,
-                    defaultColor: context.greyColor.withOpacity(0.15),
-                    textColor: context.textStyle.bodyS.bw.color,
-                    monthFontSize: context.textStyle.bodyL.fontSize,
-                    colorsets: {1: context.primaryLight},
-                  );
-                },
-              ),
-              if (!checkedIn)
-                Container(
-                  padding: EdgeInsets.only(top: 20.h, left: 15.w, right: 15.w),
-                  child: PushableButton(
-                    onPressed: () async {
-                      if (!checkedIn) {
-                        await _onAttendancePressed(
-                          uid: state.entity.uid,
-                          dataSets: datasets,
-                          context: context,
-                        );
-                      }
-                    },
-                    type: PushableButtonType.primary,
-                    text: LocaleKeys.home_check_in.tr(),
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.h),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 10.h),
+                      TextCustom(
+                        'Loading user data...',
+                        style: context.textStyle.bodyS.bw,
+                      ),
+                    ],
                   ),
                 ),
+              ),
             ],
           );
         }
-        return Container();
+        
+        if (state is! UserDataLoadedState) {
+          // For any other state (including error), just close the sheet
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          });
+          return SizedBox.shrink();
+        }
+        
+        bool checkedIn = false;
+        Map<DateTime, int> datasets = {};
+        if (state.entity.attendance.isNotNullOrEmpty) {
+          state.entity.attendance?.toSet().forEach((date) {
+            datasets[date.resetTime] = 1;
+            if (!checkedIn) {
+              checkedIn = date.eqvYearMonthDay(DateTime.now());
+            }
+          });
+        }
+        return DynamicBottomSheetCustom(
+          showDragHandle: true,
+          padding: EdgeInsets.symmetric(
+            horizontal: 15.w,
+          ).copyWith(bottom: 25.h),
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return HeatMapCalendar(
+                  showColorTip: false,
+                  datasets: datasets,
+                  // flexible: true,
+                  size: (constraints.maxWidth - 30.w) / 7 - 3.w,
+                  defaultColor: context.greyColor.withOpacity(0.15),
+                  textColor: context.textStyle.bodyS.bw.color,
+                  monthFontSize: context.textStyle.bodyL.fontSize,
+                  colorsets: {1: context.primaryLight},
+                );
+              },
+            ),
+            if (!checkedIn)
+              Container(
+                padding: EdgeInsets.only(top: 20.h, left: 15.w, right: 15.w),
+                child: PushableButton(
+                  onPressed: () async {
+                    if (!checkedIn) {
+                      await _onAttendancePressed(
+                        uid: state.entity.uid,
+                        dataSets: datasets,
+                        context: context,
+                      );
+                    }
+                  },
+                  type: PushableButtonType.primary,
+                  text: LocaleKeys.home_check_in.tr(),
+                ),
+              ),
+          ],
+        );
       },
     );
   }

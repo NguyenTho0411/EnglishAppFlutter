@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../../../../core/extensions/build_context.dart';
@@ -15,10 +16,12 @@ import '../../../../../injection_container.dart';
 import '../../../../constants/app_const.dart';
 import '../../../../managers/navigation.dart';
 import '../../../../managers/shared_preferences.dart';
+import '../../../../routes/route_manager.dart';
 import '../../../../themes/app_text_theme.dart';
 import '../../../../translations/translations.dart';
 import '../../../../widgets/custom_coach_message.dart';
 import '../../../../widgets/widgets.dart';
+import 'widgets/study_stats_widget.dart';
 
 part 'widgets/home_text_title.dart';
 
@@ -184,10 +187,80 @@ class _HomePageState extends State<HomePage>
               children: [
                 _HomeTextTitle(LocaleKeys.home_general.tr()),
                 const Gap(height: 20),
+                const StudyStatsWidget(),
+                const Gap(height: 20),
                 GestureDetector(
                   key: _attendaceKey,
                   onTap: _onOpenCalendar,
                   child: const CheckInPanel(),
+                ),
+                const Gap(height: 20),
+                // IELTS/TOEIC Practice Button
+                GestureDetector(
+                  onTap: () => context.push(AppRoutes.examHome),
+                  child: Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF667eea).withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(
+                            Icons.school_outlined,
+                            color: Colors.white,
+                            size: 32.w,
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'IELTS & TOEIC Practice',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                'Reading • Listening • Writing • Speaking',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 13.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                          size: 20.w,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const Gap(height: 20),
                 _HomeTextTitle(LocaleKeys.home_every_day_new_word.tr()),

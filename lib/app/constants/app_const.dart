@@ -6,7 +6,7 @@ class AppValueConst {
   /// Convert to MB: maxImgUploadSize / 1024 / 1024
   static const maxImgUploadSize = 5242880;
   static const maxItemLoad = 50;
-  static const minWordInBagToPlay = 5;
+  static const minWordInBagToPlay = 10; // Minimum words required in a bag to play game
   static const timeForQuiz = 30; // seconds
   static const attendancePoint = 1;
   static const attendanceGold = 1;

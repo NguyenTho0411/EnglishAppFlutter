@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../config/app_logger.dart';
 import '../../features/authentication/presentation/pages/authentication_page.dart';
 import '../../features/authentication/presentation/pages/change_password_page.dart';
+import '../../features/mini_game/domain/entities/quiz_entity.dart';
+import '../../features/mini_game/domain/entities/quiz_type.dart';
 import '../../features/mini_game/presentation/pages/quiz/game_quiz_page.dart';
 import '../../features/mini_game/presentation/pages/quiz/game_quiz_summery_page.dart';
+import '../../features/mini_game/presentation/pages/quiz/quiz_type_selection_page.dart';
 import '../../features/mini_game/presentation/pages/sliding_puzzle/sliding_puzzle_page.dart';
 import '../../features/user/user_profile/presentation/pages/favourite/favourite_page.dart';
 import '../../features/user/user_profile/presentation/pages/known_word/known_word_page.dart';
@@ -24,6 +27,20 @@ import '../screens/main/pages/profile/profile_page.dart';
 import '../screens/main/pages/search/search_page.dart';
 import '../screens/on_board/pages/on_board_page.dart';
 import '../screens/setting/setting_page.dart';
+import '../screens/study/daily_study_page.dart';
+import '../screens/study/study_session_page.dart';
+import '../screens/exam/exam_home_page.dart';
+import '../../features/exam/presentation/pages/reading_practice_page.dart';
+import '../../features/exam/presentation/pages/listening_practice_page.dart';
+import '../../features/exam/presentation/pages/writing_practice_page.dart';
+import '../../features/exam/presentation/pages/speaking_practice_page.dart';
+import '../../features/exam/presentation/pages/mock_test_page.dart';
+import '../../features/exam/presentation/pages/mock_test_execution_page.dart';
+import '../../features/exam/presentation/pages/mock_test_results_page.dart';
+import '../../features/exam/presentation/pages/exam_progress_page.dart';
+import '../../features/ai_tutor/presentation/pages/ai_tutor_page.dart';
+import '../../features/exam/domain/entities/exam_type.dart';
+import '../../features/exam/domain/entities/test_entity.dart';
 
 part 'routes.dart';
 
@@ -153,9 +170,9 @@ class AppRouter {
         },
         routes: const [],
       ),
-      //? Route: '/quiz'
+      //? Route: '/quizTypeSelection'
       GoRoute(
-        path: AppRoutes.quiz,
+        path: AppRoutes.quizTypeSelection,
         pageBuilder: (context, state) {
           logger.f("${state.fullPath}");
           final args = state.extra as List<WordEntity>?;
@@ -163,7 +180,32 @@ class AppRouter {
           return slideTransitionPage(
             context: context,
             state: state,
-            child: GameQuizPage(words: args ?? []),
+            child: QuizTypeSelectionPage(words: args ?? []),
+          );
+        },
+        routes: const [],
+      ),
+      //? Route: '/quiz'
+      GoRoute(
+        path: AppRoutes.quiz,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final extra = state.extra;
+          
+          List<WordEntity> words = [];
+          QuizType quizType = QuizType.meaningToWord;
+          
+          if (extra is Map<String, dynamic>) {
+            words = extra['words'] as List<WordEntity>? ?? [];
+            quizType = extra['type'] as QuizType? ?? QuizType.meaningToWord;
+          } else if (extra is List<WordEntity>) {
+            words = extra;
+          }
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: GameQuizPage(words: words, quizType: quizType),
           );
         },
         routes: const [],
@@ -194,6 +236,249 @@ class AppRouter {
             context: context,
             state: state,
             child: SlidingPuzzlePage(words: args ?? []),
+          );
+        },
+        routes: const [],
+      ),
+      //? Route: '/dailyStudy'
+      GoRoute(
+        path: AppRoutes.dailyStudy,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: const DailyStudyPage(),
+          );
+        },
+        routes: const [],
+      ),
+      //? Route: '/studySession'
+      GoRoute(
+        path: AppRoutes.studySession,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: StudySessionPage(
+              words: args?['words'] ?? [],
+              sessionTitle: args?['title'] ?? 'Study Session',
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/examHome'
+      GoRoute(
+        path: AppRoutes.examHome,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: const ExamHomePage(),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/readingPractice'
+      GoRoute(
+        path: AppRoutes.readingPractice,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final passageId = args?['passageId'] as String?;
+          final difficulty = args?['difficulty'] as DifficultyLevel?;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: ReadingPracticePage(
+              examType: examType,
+              passageId: passageId,
+              difficulty: difficulty,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/listeningPractice'
+      GoRoute(
+        path: AppRoutes.listeningPractice,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final audioId = args?['audioId'] as String?;
+          final difficulty = args?['difficulty'] as DifficultyLevel?;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: ListeningPracticePage(
+              examType: examType,
+              audioId: audioId,
+              difficulty: difficulty,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/writingPractice'
+      GoRoute(
+        path: AppRoutes.writingPractice,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final taskId = args?['taskId'] as String?;
+          final difficulty = args?['difficulty'] as DifficultyLevel?;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: WritingPracticePage(
+              examType: examType,
+              taskId: taskId,
+              difficulty: difficulty,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/speakingPractice'
+      GoRoute(
+        path: AppRoutes.speakingPractice,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final questionId = args?['questionId'] as String?;
+          final difficulty = args?['difficulty'] as DifficultyLevel?;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: SpeakingPracticePage(
+              examType: examType,
+              questionId: questionId,
+              difficulty: difficulty,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/mockTest'
+      GoRoute(
+        path: AppRoutes.mockTest,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final testId = args?['testId'] as String?;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: MockTestPage(
+              examType: examType,
+              testId: testId,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/examProgress'
+      GoRoute(
+        path: AppRoutes.examProgress,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: ExamProgressPage(
+              examType: examType,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/aiTutor'
+      GoRoute(
+        path: AppRoutes.aiTutor,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: AiTutorPage(
+              examType: examType,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/mockTestExecution'
+      GoRoute(
+        path: AppRoutes.mockTestExecution,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final test = args?['test'] as TestEntity;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: MockTestExecutionPage(
+              examType: examType,
+              test: test,
+            ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/mockTestResults'
+      GoRoute(
+        path: AppRoutes.mockTestResults,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          final args = state.extra as Map<String, dynamic>?;
+          final examType = args?['examType'] as ExamType? ?? ExamType.ielts;
+          final test = args?['test'] as TestEntity;
+          final attemptId = args?['attemptId'] as String? ?? '';
+          final results = args?['results'] as Map<String, dynamic>? ?? {};
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: MockTestResultsPage(
+              examType: examType,
+              test: test,
+              attemptId: attemptId,
+              results: results, // ✅ Pass results
+            ),
           );
         },
         routes: const [],

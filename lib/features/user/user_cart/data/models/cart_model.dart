@@ -34,11 +34,13 @@ class CartModel extends Equatable {
   factory CartModel.fromMap(Map<String, dynamic> map) {
     return CartModel(
       id: map['id'] as String,
-      bags: List<CartBagModel>.from(
-        (map['bags'] as List).map<CartBagModel>(
-          (x) => CartBagModel.fromMap(x as Map<String, dynamic>),
-        ),
-      ),
+      bags: map['bags'] != null
+          ? List<CartBagModel>.from(
+              (map['bags'] as List).map<CartBagModel>(
+                (x) => CartBagModel.fromMap(x as Map<String, dynamic>),
+              ),
+            )
+          : [], // Return empty list if bags is null
     );
   }
 
@@ -92,9 +94,13 @@ class CartBagModel extends Equatable {
 
   factory CartBagModel.fromMap(Map<String, dynamic> map) {
     return CartBagModel(
-      label: map['label'] as String,
-      words: (map['words'] as List).map((e) => e.toString()).toList(),
-      dateTime: DateTime.fromMillisecondsSinceEpoch(map['dateTime'] as int),
+      label: map['label'] as String? ?? '',
+      words: map['words'] != null
+          ? (map['words'] as List).map((e) => e.toString()).toList()
+          : [],
+      dateTime: map['dateTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['dateTime'] as int)
+          : DateTime.now(),
     );
   }
 

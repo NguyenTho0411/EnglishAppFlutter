@@ -27,10 +27,6 @@ class SignInWithGoogleUsecase extends UsecasesNoParam<AuthEntity> {
     return await signInResult.fold((failure) async => Left(failure), (
       authEntity,
     ) async {
-      if (!authEntity.isNewUser) {
-        return Right(authEntity);
-      }
-
       final user = authEntity.user;
 
       final userEntity = UserEntity(
@@ -44,18 +40,22 @@ class SignInWithGoogleUsecase extends UsecasesNoParam<AuthEntity> {
         createdDate: user.metadata.creationTime,
       );
 
+      // Always ensure user profile exists (merge if exists, create if not)
       final addUserResult = await userRepository.addUserProfile(userEntity);
 
       return await addUserResult.fold((fail) => Left(fail), (_) async {
-        final addCartRes = await cartRepository.createCart(
-          authEntity.uid,
-          CartEntity.empty.copyWith(id: authEntity.uid),
-        );
+        if (authEntity.isNewUser) {
+          final addCartRes = await cartRepository.createCart(
+            authEntity.uid,
+            CartEntity.empty.copyWith(id: authEntity.uid),
+          );
 
-        return addCartRes.fold(
-          (fail) => Left(fail),
-          (_) => Right(authEntity.copyWith(isNewUser: false)),
-        );
+          return addCartRes.fold(
+            (fail) => Left(fail),
+            (_) => Right(authEntity.copyWith(isNewUser: false)),
+          );
+        }
+        return Right(authEntity);
       });
     });
   }

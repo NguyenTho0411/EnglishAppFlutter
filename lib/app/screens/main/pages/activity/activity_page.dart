@@ -31,7 +31,7 @@ class ActivityPage extends StatefulWidget {
 class _ActivityPageState extends State<ActivityPage>
     with AutomaticKeepAliveClientMixin {
   final activities = [
-    ActivityCard(Assets.icons.quizIcon, AppStringConst.quiz, AppRoutes.quiz),
+    ActivityCard(Assets.icons.quizIcon, AppStringConst.quiz, AppRoutes.quizTypeSelection),
     ActivityCard(Assets.icons.block, AppStringConst.slidingPuzzle,
         AppRoutes.slidingPuzzle),
   ];

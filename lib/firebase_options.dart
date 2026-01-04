@@ -50,11 +50,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC6GC0Ua0W1ut6wsbJ5kXw0HpvwdL4_F10',
-    appId: '1:536281899166:android:499482238004d7a5089b8f',
-    messagingSenderId: '536281899166',
-    projectId: 'vocaday-app-73f7c',
-    storageBucket: 'vocaday-app-73f7c.appspot.com',
+    apiKey: 'AIzaSyDrKKKkJrIZz-I9pyvJEgYH8ploOjvk2L8',
+    appId: '1:260054859962:android:9ef73cad9283696c998283',
+    messagingSenderId: '260054859962',
+    projectId: 'vocab-app-english',
+    storageBucket: 'vocab-app-english.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

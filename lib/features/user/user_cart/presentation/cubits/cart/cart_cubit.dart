@@ -125,7 +125,12 @@ class CartCubit extends Cubit<CartState> {
 
     final result = await getCartUsecase(uid);
     result.fold(
-      (failure) => emit(CartErrorState(failure.message)),
+      (failure) {
+        // DEBUG: Print error details
+        print('🔴 CartCubit ERROR: ${failure.message}');
+        print('🔴 CartCubit ERROR TYPE: ${failure.runtimeType}');
+        emit(CartErrorState(failure.message));
+      },
       (cart) => emit(CartLoadedState(cart)),
     );
   }

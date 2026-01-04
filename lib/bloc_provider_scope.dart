@@ -12,6 +12,8 @@ import 'features/user/user_profile/presentation/cubits/favourite/word_favourite_
 import 'features/user/user_profile/presentation/cubits/known/known_word_cubit.dart';
 import 'features/user/user_profile/presentation/cubits/user_data/user_data_cubit.dart';
 import 'features/word/presentation/blocs/word_list/word_list_cubit.dart';
+import 'features/word/presentation/cubits/word_progress/word_progress_cubit.dart';
+import 'features/exam/presentation/cubits/exam_cubit.dart';
 import 'injection_container.dart';
 
 class BlocProviderScope extends StatelessWidget {
@@ -56,6 +58,10 @@ class BlocProviderScope extends StatelessWidget {
         BlocProvider(
           create: (_) => sl<KnownWordCubit>()..getAllKnownWords(),
         ),
+        //* Word Progress Cubit
+        BlocProvider(create: (_) => sl<WordProgressCubit>()),
+        //* Exam Cubit (IELTS/TOEIC)
+        BlocProvider(create: (_) => sl<ExamCubit>()),
       ],
       child: child,
     );

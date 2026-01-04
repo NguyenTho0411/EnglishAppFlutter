@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../exam/domain/entities/exam_type.dart';
+
+class AiTutorPage extends StatelessWidget {
+  final ExamType examType;
+
+  const AiTutorPage({
+    super.key,
+    required this.examType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${examType.name.toUpperCase()} AI Tutor'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.psychology_outlined,
+                size: 100.w,
+                color: Colors.teal,
+              ),
+              SizedBox(height: 20.h),
+              Text(
+                '🤖 AI Tutor Chat',
+                style: TextStyle(
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10.h),
+              Text(
+                'Coming soon! This feature is under development.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 30.h),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Go Back'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 15.h),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

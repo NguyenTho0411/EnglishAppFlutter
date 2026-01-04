@@ -38,11 +38,17 @@ class CartRemoteDataSourceImpl implements CartRemoteDataSource {
       if (result.exists) {
         return result.data()!;
       } else {
-        throw DatabaseException(AppStringConst.objectNotFoundMessage);
+        // Auto-create cart document if not exists
+        print('🔵 Cart document not found for $uid, creating...');
+        final emptyCart = {'id': uid, 'bags': []};
+        await firestore.collection(_carts).doc(uid).set(emptyCart);
+        return emptyCart;
       }
-    } on FirebaseException {
+    } on FirebaseException catch (e) {
+      print('🔴 FirebaseException in getCart: ${e.code} - ${e.message}');
       rethrow;
     } on UnimplementedError catch (e) {
+      print('🔴 UnimplementedError in getCart: ${e.message}');
       throw DatabaseException(e.message ?? '');
     }
   }
