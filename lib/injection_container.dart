@@ -74,8 +74,10 @@ import 'features/word/domain/usecases/search_words.dart';
 import 'features/word/domain/usecases/watch_word_progress.dart';
 import 'features/word/presentation/blocs/search_word/search_word_bloc.dart';
 import 'features/word/presentation/blocs/word_list/word_list_cubit.dart';
-import 'features/word/presentation/cubits/word_progress/word_progress_cubit.dart';
-import 'features/exam/data/data_sources/exam_remote_data_source.dart';
+import 'features/word/presentation/cubits/word_progress/word_progress_cubit.dart';import 'features/reading/data/repositories/reading_repository_impl.dart';
+import 'features/reading/domain/repositories/reading_repository.dart';
+import 'features/reading/domain/usecases/get_reading_passages.dart';
+import 'features/reading/presentation/blocs/reading_bloc.dart';import 'features/exam/data/data_sources/exam_remote_data_source.dart';
 import 'features/exam/data/repositories/exam_repository_impl.dart';import 'features/exam/data/services/firestore_exam_service.dart';import 'features/exam/domain/repositories/exam_repository.dart';
 import 'features/exam/presentation/cubits/exam_cubit.dart';
 import 'features/ai_tutor/data/services/openai_service.dart';
@@ -143,6 +145,16 @@ Future<void> setUpServiceLocator() async {
   sl.registerFactory(() => WordListCubit(sl()));
   sl.registerFactory(() => SearchWordBloc(sl()));
   sl.registerFactory(() => WordProgressCubit(sl(), sl(), sl()));
+
+  //! Features - reading
+  // Repository
+  sl.registerLazySingleton<ReadingRepository>(
+    () => ReadingRepositoryImpl(),
+  );
+  // Usecase
+  sl.registerLazySingleton(() => GetReadingPassages(sl()));
+  // Bloc
+  sl.registerFactory(() => ReadingBloc(sl()));
 
   //! Features - authentication
   // Data source

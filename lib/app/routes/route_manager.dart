@@ -39,6 +39,7 @@ import '../../features/exam/presentation/pages/mock_test_execution_page.dart';
 import '../../features/exam/presentation/pages/mock_test_results_page.dart';
 import '../../features/exam/presentation/pages/exam_progress_page.dart';
 import '../../features/ai_tutor/presentation/pages/ai_tutor_page.dart';
+import '../../features/reading/presentation/pages/reading_page.dart';
 import '../../features/exam/domain/entities/exam_type.dart';
 import '../../features/exam/domain/entities/test_entity.dart';
 
@@ -282,6 +283,20 @@ class AppRouter {
             context: context,
             state: state,
             child: const ExamHomePage(),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/reading'
+      GoRoute(
+        path: AppRoutes.reading,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: const ReadingPage(),
           );
         },
         routes: const [],

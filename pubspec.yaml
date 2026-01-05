@@ -56,8 +56,8 @@ dependencies:
   # Audio
   audioplayers: ^5.2.1
   flutter_tts: ^4.2.0
-  flutter_sound: ^9.2.13  # For audio recording (more stable alternative)
-  path_provider: ^2.1.1  # For file paths
+  flutter_sound: ^9.2.13 # For audio recording (more stable alternative)
+  path_provider: ^2.1.1 # For file paths
 
   # App Updates & Reviews
   in_app_update: ^4.2.2
@@ -69,7 +69,7 @@ dependencies:
   # Network & HTTP
   dio: ^5.4.0
   connectivity_plus: ^5.0.2
-  http: ^1.1.0  # For OpenAI API integration
+  http: ^1.1.0 # For OpenAI API integration
 
   # Google Sign In
   google_sign_in: ^6.2.1
