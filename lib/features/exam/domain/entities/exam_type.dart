@@ -54,7 +54,7 @@ enum QuestionType {
   flowChartCompletion('Flow Chart Completion'),
   diagramCompletion('Diagram Completion'),
   shortAnswer('Short Answer Questions'),
-  
+
   // Listening
   listeningMultipleChoice('Listening Multiple Choice'),
   listeningMatchingHeadings('Listening Matching'),
@@ -65,16 +65,27 @@ enum QuestionType {
   listeningSentenceCompletion('Listening Sentence Completion'),
   listeningShortAnswer('Listening Short Answer'),
   mapLabelCompletion('Map/Plan/Diagram Labeling'),
-  
+
   // Writing
   writingTask1Academic('Academic Writing Task 1'), // Graph, chart, diagram
   writingTask1General('General Writing Task 1'), // Letter
   writingTask2('Writing Task 2'), // Essay
-  
+
   // Speaking
   speakingPart1('Speaking Part 1'), // Introduction & interview
   speakingPart2('Speaking Part 2'), // Individual long turn
-  speakingPart3('Speaking Part 3'); // Two-way discussion
+  speakingPart3('Speaking Part 3'), // Two-way discussion
+
+  // TOEIC Listening
+  toeicPhotographs('Photographs'), // Part 1
+  toeicQuestionResponse('Question - Response'), // Part 2
+  toeicConversations('Conversations'), // Part 3
+  toeicTalks('Talks'), // Part 4
+
+  // TOEIC Reading
+  toeicIncompleteSentences('Incomplete Sentences'), // Part 5
+  toeicTextCompletion('Text Completion'), // Part 6
+  toeicReadingComprehension('Reading Comprehension'); // Part 7
 
   final String displayName;
 
