@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -25,6 +26,8 @@ class _SpeakingSectionPageState extends State<SpeakingSectionPage> {
   bool _isLoading = true;
   bool _isRecorderInit = false;
   bool _isSubmitting = false;
+  bool _hasStartedSubmission = false; // ✅ Flag to prevent multiple submissions
+  String _progressMessage = '';
   Map<String, dynamic>? _testData;
   List<Map<String, dynamic>> _parts = [];
   int _currentPartIndex = 0;
@@ -148,6 +151,37 @@ class _SpeakingSectionPageState extends State<SpeakingSectionPage> {
               Text('No parts found in test data', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
               SizedBox(height: 16.h),
               ElevatedButton(onPressed: () => Navigator.pop(context), child: Text('Go Back')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Check if we've completed all parts
+    if (_currentPartIndex >= _parts.length) {
+      // ✅ Only submit once using dedicated flag
+      if (!_hasStartedSubmission) {
+        _hasStartedSubmission = true; // Set BEFORE callback
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _submitAnswers();
+          }
+        });
+      }
+      return Scaffold(
+        appBar: AppBar(title: Text('Speaking'), backgroundColor: Colors.red[700]),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+              if (_progressMessage.isNotEmpty)
+                Text(
+                  _progressMessage,
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
             ],
           ),
         ),
@@ -504,77 +538,160 @@ class _SpeakingSectionPageState extends State<SpeakingSectionPage> {
   Future<void> _startRecording(String key) async {
     if (!_isRecorderInit) return;
     final dir = await getTemporaryDirectory();
-    _currentRecordingPath = '${dir.path}/$key.wav'; // ✅ Changed from .aac to .wav
-    await _recorder.startRecorder(toFile: _currentRecordingPath, codec: Codec.pcm16WAV); // ✅ Changed codec
+    _currentRecordingPath = '${dir.path}/$key.wav';
+    
+    // Use lower sample rate (16kHz) to reduce file size
+    // OpenAI Whisper works well with 16kHz audio
+    await _recorder.startRecorder(
+      toFile: _currentRecordingPath, 
+      codec: Codec.pcm16WAV,
+      sampleRate: 16000, // 16kHz instead of default 44.1kHz
+      numChannels: 1,     // Mono instead of stereo
+    );
+    
     setState(() => _isRecording = true);
+    print('🎤 Recording started: $key (16kHz, mono)');
   }
 
   Future<void> _stopRecording() async {
     await _recorder.stopRecorder();
     if (_currentRecordingPath != null) {
-      final key = _currentRecordingPath!.split('/').last.replaceAll('.wav', ''); // ✅ Changed from .aac
+      final key = _currentRecordingPath!.split('/').last.replaceAll('.wav', '');
       _recordings[key] = _currentRecordingPath!;
+      
+      // Log file size
+      final file = File(_currentRecordingPath!);
+      if (await file.exists()) {
+        final size = await file.length();
+        print('🎙️ Recording saved: $key (${(size / 1024).toStringAsFixed(2)} KB)');
+      }
     }
     setState(() {_isRecording = false; _currentRecordingPath = null;});
   }
 
   Future<void> _submitAnswers() async {
+    if (!mounted) return;
     setState(() => _isSubmitting = true);
     
     try {
-      // Transcribe all recordings
+      // Transcribe all recordings with progress tracking
       final transcripts = <String, String>{};
+      final totalRecordings = _recordings.length;
+      var currentRecording = 0;
+      
       for (var entry in _recordings.entries) {
-        final transcript = await _openAIService.transcribeAudio(entry.value);
-        transcripts[entry.key] = transcript;
+        if (!mounted) return;
+        
+        currentRecording++;
+        if (mounted) {
+          setState(() => _progressMessage = 'Đang phiên âm ${currentRecording}/$totalRecordings...');
+        }
+        
+        try {
+          final transcript = await _openAIService.transcribeAudio(entry.value);
+          transcripts[entry.key] = transcript;
+          
+          // Delay to avoid rate limiting
+          await Future.delayed(Duration(milliseconds: 500));
+        } catch (e) {
+          print('⚠️ Transcription error for ${entry.key}: $e');
+          transcripts[entry.key] = ''; // Continue with empty transcript
+        }
       }
       
       // Build question-answer pairs for detailed feedback
       final Map<String, Map<String, dynamic>> detailedFeedback = {};
+      var gradedCount = 0;
+      final totalQuestions = transcripts.length;
       
       // Part 1 - Individual questions
       if (_parts.isNotEmpty) {
         final part1Questions = _parts[0]['questions'] as List;
         for (var i = 0; i < part1Questions.length; i++) {
+          if (!mounted) return;
+          
           final questionKey = 'part1_q${i + 1}';
           final question = part1Questions[i];
           final transcript = transcripts[questionKey] ?? '';
           
           if (transcript.isNotEmpty) {
-            final feedback = await _openAIService.gradeSpeaking(
-              transcription: transcript,
-              taskPrompt: question.toString(),
-              partNumber: 1,
-            );
-            detailedFeedback[questionKey] = {
-              'question': question,
-              'transcript': transcript,
-              'score': IELTSBandCalculator.convertAIScoreToBand(feedback['overall_score'] ?? 5.0),
-              'feedback': feedback['feedback'] ?? '',
-              'strengths': feedback['strengths'] ?? [],
-              'improvements': feedback['improvements'] ?? [],
-            };
+            gradedCount++;
+            if (mounted) {
+              setState(() => _progressMessage = 'Đang chấm câu $gradedCount/$totalQuestions...');
+            }
+            
+            try {
+              final feedback = await _openAIService.gradeSpeaking(
+                transcription: transcript,
+                taskPrompt: question.toString(),
+                partNumber: 1,
+              );
+              detailedFeedback[questionKey] = {
+                'question': question,
+                'transcript': transcript,
+                'score': IELTSBandCalculator.convertAIScoreToBand(feedback['overall_score'] ?? 5.0),
+                'feedback': feedback['feedback'] ?? '',
+                'strengths': feedback['strengths'] ?? [],
+                'improvements': feedback['improvements'] ?? [],
+              };
+              
+              // Delay to avoid rate limiting
+              await Future.delayed(Duration(seconds: 2));
+            } catch (e) {
+              print('⚠️ Grading error for $questionKey: $e');
+              // Continue with default score if grading fails
+              detailedFeedback[questionKey] = {
+                'question': question,
+                'transcript': transcript,
+                'score': 5.0,
+                'feedback': 'Không thể chấm điểm do lỗi API',
+                'strengths': [],
+                'improvements': [],
+              };
+            }
           }
         }
       }
       
       // Part 2 - Cue card
       if (_parts.length > 1) {
+        if (!mounted) return;
+        
         final part2Transcript = transcripts['part2_cuecard'] ?? '';
         if (part2Transcript.isNotEmpty) {
-          final feedback = await _openAIService.gradeSpeaking(
-            transcription: part2Transcript,
-            taskPrompt: _parts[1]['questions'][0].toString(),
-            partNumber: 2,
-          );
-          detailedFeedback['part2_cuecard'] = {
-            'question': _parts[1]['questions'][0],
-            'transcript': part2Transcript,
-            'score': IELTSBandCalculator.convertAIScoreToBand(feedback['overall_score'] ?? 5.0),
-            'feedback': feedback['feedback'] ?? '',
-            'strengths': feedback['strengths'] ?? [],
-            'improvements': feedback['improvements'] ?? [],
-          };
+          gradedCount++;
+          if (mounted) {
+            setState(() => _progressMessage = 'Đang chấm câu $gradedCount/$totalQuestions...');
+          }
+          
+          try {
+            final feedback = await _openAIService.gradeSpeaking(
+              transcription: part2Transcript,
+              taskPrompt: _parts[1]['questions'][0].toString(),
+              partNumber: 2,
+            );
+            detailedFeedback['part2_cuecard'] = {
+              'question': _parts[1]['questions'][0],
+              'transcript': part2Transcript,
+              'score': IELTSBandCalculator.convertAIScoreToBand(feedback['overall_score'] ?? 5.0),
+              'feedback': feedback['feedback'] ?? '',
+              'strengths': feedback['strengths'] ?? [],
+              'improvements': feedback['improvements'] ?? [],
+            };
+            
+            // Delay to avoid rate limiting
+            await Future.delayed(Duration(seconds: 2));
+          } catch (e) {
+            print('⚠️ Grading error for part2_cuecard: $e');
+            detailedFeedback['part2_cuecard'] = {
+              'question': _parts[1]['questions'][0],
+              'transcript': part2Transcript,
+              'score': 5.0,
+              'feedback': 'Không thể chấm điểm do lỗi API',
+              'strengths': [],
+              'improvements': [],
+            };
+          }
         }
       }
       
@@ -582,24 +699,46 @@ class _SpeakingSectionPageState extends State<SpeakingSectionPage> {
       if (_parts.length > 2) {
         final part3Questions = _parts[2]['questions'] as List;
         for (var i = 0; i < part3Questions.length; i++) {
+          if (!mounted) return;
+          
           final questionKey = 'part3_q${i + 1}';
           final question = part3Questions[i];
           final transcript = transcripts[questionKey] ?? '';
           
           if (transcript.isNotEmpty) {
-            final feedback = await _openAIService.gradeSpeaking(
-              transcription: transcript,
-              taskPrompt: question.toString(),
-              partNumber: 3,
-            );
-            detailedFeedback[questionKey] = {
-              'question': question,
-              'transcript': transcript,
-              'score': IELTSBandCalculator.convertAIScoreToBand(feedback['overall_score'] ?? 5.0),
-              'feedback': feedback['feedback'] ?? '',
-              'strengths': feedback['strengths'] ?? [],
-              'improvements': feedback['improvements'] ?? [],
-            };
+            gradedCount++;
+            if (mounted) {
+              setState(() => _progressMessage = 'Đang chấm câu $gradedCount/$totalQuestions...');
+            }
+            
+            try {
+              final feedback = await _openAIService.gradeSpeaking(
+                transcription: transcript,
+                taskPrompt: question.toString(),
+                partNumber: 3,
+              );
+              detailedFeedback[questionKey] = {
+                'question': question,
+                'transcript': transcript,
+                'score': IELTSBandCalculator.convertAIScoreToBand(feedback['overall_score'] ?? 5.0),
+                'feedback': feedback['feedback'] ?? '',
+                'strengths': feedback['strengths'] ?? [],
+                'improvements': feedback['improvements'] ?? [],
+              };
+              
+              // Delay to avoid rate limiting
+              await Future.delayed(Duration(seconds: 2));
+            } catch (e) {
+              print('⚠️ Grading error for $questionKey: $e');
+              detailedFeedback[questionKey] = {
+                'question': question,
+                'transcript': transcript,
+                'score': 5.0,
+                'feedback': 'Không thể chấm điểm do lỗi API',
+                'strengths': [],
+                'improvements': [],
+              };
+            }
           }
         }
       }
@@ -625,9 +764,15 @@ class _SpeakingSectionPageState extends State<SpeakingSectionPage> {
         'speakingDetailedFeedback': detailedFeedback, // ✅ Detailed feedback per question
       });
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Grading error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi chấm điểm: $e'))
+        );
+      }
     } finally {
-      setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
