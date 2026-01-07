@@ -33,7 +33,9 @@ class ExamRemoteDataSource {
     }
 
     final snapshot = await query.get();
-    return snapshot.docs.map((doc) => QuestionModel.fromFirestore(doc)).toList();
+    return snapshot.docs
+        .map((doc) => QuestionModel.fromFirestore(doc))
+        .toList();
   }
 
   Future<QuestionModel> getQuestionById(String id) async {
@@ -50,7 +52,9 @@ class ExamRemoteDataSource {
         .where('passageId', isEqualTo: passageId)
         .orderBy('orderIndex')
         .get();
-    return snapshot.docs.map((doc) => QuestionModel.fromFirestore(doc)).toList();
+    return snapshot.docs
+        .map((doc) => QuestionModel.fromFirestore(doc))
+        .toList();
   }
 
   Future<List<QuestionModel>> getQuestionsByAudio(String audioId) async {
@@ -59,7 +63,9 @@ class ExamRemoteDataSource {
         .where('audioId', isEqualTo: audioId)
         .orderBy('orderIndex')
         .get();
-    return snapshot.docs.map((doc) => QuestionModel.fromFirestore(doc)).toList();
+    return snapshot.docs
+        .map((doc) => QuestionModel.fromFirestore(doc))
+        .toList();
   }
 
   // ==================== PASSAGES ====================
@@ -69,7 +75,9 @@ class ExamRemoteDataSource {
     String? topic,
     int? limit,
   }) async {
-    Query query = firestore.collection('passages').where('examType', isEqualTo: examType.code);
+    Query query = firestore
+        .collection('passages')
+        .where('examType', isEqualTo: examType.code);
 
     if (difficulty != null) {
       query = query.where('difficulty', isEqualTo: difficulty.name);
@@ -102,7 +110,9 @@ class ExamRemoteDataSource {
     String? topic,
     int? limit,
   }) async {
-    Query query = firestore.collection('audios').where('examType', isEqualTo: examType.code);
+    Query query = firestore
+        .collection('audios')
+        .where('examType', isEqualTo: examType.code);
 
     if (difficulty != null) {
       query = query.where('difficulty', isEqualTo: difficulty.name);
@@ -167,7 +177,10 @@ class ExamRemoteDataSource {
   }
 
   Future<TestAttemptModel> getTestAttempt(String attemptId) async {
-    final doc = await firestore.collection('test_attempts').doc(attemptId).get();
+    final doc = await firestore
+        .collection('test_attempts')
+        .doc(attemptId)
+        .get();
     if (!doc.exists) {
       throw Exception('Test attempt not found');
     }
@@ -198,7 +211,9 @@ class ExamRemoteDataSource {
     }
 
     final snapshot = await query.get();
-    return snapshot.docs.map((doc) => TestAttemptModel.fromFirestore(doc)).toList();
+    return snapshot.docs
+        .map((doc) => TestAttemptModel.fromFirestore(doc))
+        .toList();
   }
 
   Future<void> submitAnswer({
@@ -271,7 +286,9 @@ class ExamRemoteDataSource {
     }
 
     final snapshot = await query.get();
-    return snapshot.docs.map((doc) => SkillProgressModel.fromFirestore(doc)).toList();
+    return snapshot.docs
+        .map((doc) => SkillProgressModel.fromFirestore(doc))
+        .toList();
   }
 
   Future<void> updateSkillProgress(SkillProgressModel progress) async {

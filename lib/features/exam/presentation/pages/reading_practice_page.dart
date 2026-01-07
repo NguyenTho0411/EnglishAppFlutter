@@ -44,9 +44,9 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
       context.read<ExamCubit>().loadPassageById(widget.passageId!);
     } else {
       context.read<ExamCubit>().loadRandomPassage(
-            examType: widget.examType,
-            difficulty: widget.difficulty,
-          );
+        examType: widget.examType,
+        difficulty: widget.difficulty,
+      );
     }
   }
 
@@ -136,10 +136,10 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
 
     // TODO: Save progress to Firestore
     context.read<ExamCubit>().saveReadingProgress(
-          passageId: state.passage!.id,
-          answers: _userAnswers,
-          timeSpentSeconds: _secondsElapsed,
-        );
+      passageId: state.passage!.id,
+      answers: _userAnswers,
+      timeSpentSeconds: _secondsElapsed,
+    );
   }
 
   @override
@@ -161,7 +161,10 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black12,
                   borderRadius: BorderRadius.circular(8),
@@ -244,18 +247,25 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
                               children: [
                                 Chip(
                                   label: Text(passage.difficulty.name),
-                                  backgroundColor: _getDifficultyColor(passage.difficulty),
+                                  backgroundColor: _getDifficultyColor(
+                                    passage.difficulty,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Chip(label: Text(passage.topic)),
                                 const SizedBox(width: 8),
                                 Chip(
                                   label: Text('${passage.wordCount} words'),
-                                  avatar: const Icon(Icons.text_fields, size: 16),
+                                  avatar: const Icon(
+                                    Icons.text_fields,
+                                    size: 16,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Chip(
-                                  label: Text('~${passage.estimatedReadingTime} min'),
+                                  label: Text(
+                                    '~${passage.estimatedReadingTime} min',
+                                  ),
                                   avatar: const Icon(Icons.schedule, size: 16),
                                 ),
                               ],
@@ -313,7 +323,9 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
                           LinearProgressIndicator(
                             value: _userAnswers.length / questions.length,
                             backgroundColor: Colors.grey[300],
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.green,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -366,7 +378,9 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: _userAnswers.length == questions.length && !_showAnswers
+                        onPressed:
+                            _userAnswers.length == questions.length &&
+                                !_showAnswers
                             ? _submitAllAnswers
                             : null,
                         style: ElevatedButton.styleFrom(
@@ -378,7 +392,10 @@ class _ReadingPracticePageState extends State<ReadingPracticePage> {
                           _showAnswers
                               ? 'Review Complete'
                               : 'Submit Answers (${_userAnswers.length}/${questions.length})',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -488,7 +505,8 @@ class _QuestionWidget extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             // Answer options
-            if (question.questionType == QuestionType.multipleChoice && question.options != null)
+            if (question.questionType == QuestionType.multipleChoice &&
+                question.options != null)
               ..._buildMultipleChoiceOptions(),
             if (question.questionType == QuestionType.trueFalseNotGiven ||
                 question.questionType == QuestionType.yesNoNotGiven)
@@ -511,7 +529,11 @@ class _QuestionWidget extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.lightbulb, size: 20, color: Colors.blue[700]),
+                        Icon(
+                          Icons.lightbulb,
+                          size: 20,
+                          color: Colors.blue[700],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Explanation',
@@ -584,7 +606,9 @@ class _QuestionWidget extends StatelessWidget {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: isSelected ? (borderColor ?? Colors.blue) : Colors.white,
+                  color: isSelected
+                      ? (borderColor ?? Colors.blue)
+                      : Colors.white,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: borderColor ?? Colors.grey[400]!,
@@ -596,7 +620,9 @@ class _QuestionWidget extends StatelessWidget {
                     optionLabel,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : (textColor ?? Colors.black),
+                      color: isSelected
+                          ? Colors.white
+                          : (textColor ?? Colors.black),
                     ),
                   ),
                 ),
@@ -605,10 +631,7 @@ class _QuestionWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   option,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: textColor,
-                  ),
+                  style: TextStyle(fontSize: 15, color: textColor),
                 ),
               ),
               if (showCorrectAnswer && isCorrect)
@@ -663,7 +686,9 @@ class _QuestionWidget extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
                 color: borderColor ?? Colors.grey[600],
               ),
               const SizedBox(width: 12),
@@ -688,7 +713,7 @@ class _QuestionWidget extends StatelessWidget {
 
   Widget _buildShortAnswerField() {
     final controller = TextEditingController(text: userAnswer);
-    
+
     return TextField(
       controller: controller,
       enabled: !showCorrectAnswer,

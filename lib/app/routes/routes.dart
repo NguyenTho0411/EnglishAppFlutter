@@ -21,7 +21,6 @@ class AppRoutes {
 
   // IELTS/TOEIC Exam routes
   static const examHome = '/examHome';
-  static const reading = '/reading';
   static const readingPractice = '/readingPractice';
   static const listeningPractice = '/listeningPractice';
   static const writingPractice = '/writingPractice';
@@ -31,6 +30,8 @@ class AppRoutes {
   static const mockTestResults = '/mockTestResults';
   static const examProgress = '/examProgress';
   static const aiTutor = '/aiTutor';
+  static const bookReading = '/bookReading';
+  static const bookReader = '/bookReader';
 
   static const main = '/main';
   static const home = '$main/home';

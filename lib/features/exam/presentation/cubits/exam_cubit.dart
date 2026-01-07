@@ -12,26 +12,25 @@ class ExamCubit extends Cubit<ExamState> {
   // ==================== READING ====================
   Future<void> loadPassageById(String passageId) async {
     emit(const ExamLoadingState());
-    
+
     final passageResult = await repository.getPassageById(passageId);
-    
+
     await passageResult.fold(
       (failure) async {
         emit(ExamErrorState(failure.message));
       },
       (passage) async {
         // Load questions for this passage
-        final questionsResult = await repository.getQuestionsByPassage(passageId);
-        
+        final questionsResult = await repository.getQuestionsByPassage(
+          passageId,
+        );
+
         questionsResult.fold(
           (failure) {
             emit(ExamErrorState(failure.message));
           },
           (questions) {
-            emit(ExamLoadedState(
-              passage: passage,
-              questions: questions,
-            ));
+            emit(ExamLoadedState(passage: passage, questions: questions));
           },
         );
       },
@@ -43,13 +42,13 @@ class ExamCubit extends Cubit<ExamState> {
     DifficultyLevel? difficulty,
   }) async {
     emit(const ExamLoadingState());
-    
+
     final passagesResult = await repository.getPassages(
       examType: examType,
       difficulty: difficulty,
       limit: 1,
     );
-    
+
     await passagesResult.fold(
       (failure) async {
         emit(ExamErrorState(failure.message));
@@ -59,21 +58,20 @@ class ExamCubit extends Cubit<ExamState> {
           emit(const ExamErrorState('No passages available'));
           return;
         }
-        
+
         final passage = passages.first;
-        
+
         // Load questions for this passage
-        final questionsResult = await repository.getQuestionsByPassage(passage.id);
-        
+        final questionsResult = await repository.getQuestionsByPassage(
+          passage.id,
+        );
+
         questionsResult.fold(
           (failure) {
             emit(ExamErrorState(failure.message));
           },
           (questions) {
-            emit(ExamLoadedState(
-              passage: passage,
-              questions: questions,
-            ));
+            emit(ExamLoadedState(passage: passage, questions: questions));
           },
         );
       },
@@ -92,9 +90,9 @@ class ExamCubit extends Cubit<ExamState> {
   // ==================== LISTENING ====================
   Future<void> loadAudioById(String audioId) async {
     emit(const ExamLoadingState());
-    
+
     final audioResult = await repository.getAudioById(audioId);
-    
+
     await audioResult.fold(
       (failure) async {
         emit(ExamErrorState(failure.message));
@@ -102,16 +100,13 @@ class ExamCubit extends Cubit<ExamState> {
       (audio) async {
         // Load questions for this audio
         final questionsResult = await repository.getQuestionsByAudio(audioId);
-        
+
         questionsResult.fold(
           (failure) {
             emit(ExamErrorState(failure.message));
           },
           (questions) {
-            emit(ExamLoadedState(
-              audio: audio,
-              questions: questions,
-            ));
+            emit(ExamLoadedState(audio: audio, questions: questions));
           },
         );
       },
@@ -123,13 +118,13 @@ class ExamCubit extends Cubit<ExamState> {
     DifficultyLevel? difficulty,
   }) async {
     emit(const ExamLoadingState());
-    
+
     final audiosResult = await repository.getAudios(
       examType: examType,
       difficulty: difficulty,
       limit: 1,
     );
-    
+
     await audiosResult.fold(
       (failure) async {
         emit(ExamErrorState(failure.message));
@@ -139,21 +134,18 @@ class ExamCubit extends Cubit<ExamState> {
           emit(const ExamErrorState('No audio files available'));
           return;
         }
-        
+
         final audio = audios.first;
-        
+
         // Load questions for this audio
         final questionsResult = await repository.getQuestionsByAudio(audio.id);
-        
+
         questionsResult.fold(
           (failure) {
             emit(ExamErrorState(failure.message));
           },
           (questions) {
-            emit(ExamLoadedState(
-              audio: audio,
-              questions: questions,
-            ));
+            emit(ExamLoadedState(audio: audio, questions: questions));
           },
         );
       },
@@ -166,12 +158,12 @@ class ExamCubit extends Cubit<ExamState> {
     ExamType? examType,
   }) async {
     emit(const ExamLoadingState());
-    
+
     final result = await repository.getAllSkillProgress(
       userId: userId,
       examType: examType,
     );
-    
+
     result.fold(
       (failure) => emit(ExamErrorState(failure.message)),
       (progress) => emit(SkillProgressLoadedState(progress)),
@@ -184,13 +176,13 @@ class ExamCubit extends Cubit<ExamState> {
     required SkillType skill,
   }) async {
     emit(const ExamLoadingState());
-    
+
     final result = await repository.getSkillProgress(
       userId: userId,
       examType: examType,
       skill: skill,
     );
-    
+
     result.fold(
       (failure) => emit(ExamErrorState(failure.message)),
       (progress) => emit(SkillProgressLoadedState([progress])),
@@ -201,9 +193,9 @@ class ExamCubit extends Cubit<ExamState> {
   // ==================== MOCK TESTS ====================
   Future<void> loadTests(ExamType examType) async {
     emit(const ExamLoadingState());
-    
+
     final result = await repository.getTests(examType: examType);
-    
+
     result.fold(
       (failure) {
         // If Firestore fails, generate sample tests instead of showing error
@@ -229,7 +221,8 @@ class ExamCubit extends Cubit<ExamState> {
         id: 'test_${examType.code.toLowerCase()}_$testNumber',
         examType: examType,
         title: '${examType.code} Practice Test $testNumber',
-        description: 'Full-length practice test with all sections. Simulates real exam conditions.',
+        description:
+            'Full-length practice test with all sections. Simulates real exam conditions.',
         sections: _generateSections(examType, testNumber),
         totalQuestions: examType == ExamType.ielts ? 85 : 200,
         totalTimeLimit: examType == ExamType.ielts ? 175 : 120,
@@ -284,7 +277,10 @@ class ExamCubit extends Cubit<ExamState> {
           id: 'section_listening_$testNumber',
           skill: SkillType.listening,
           title: 'Listening',
-          questionIds: List.generate(100, (i) => 'q_listening_${testNumber}_$i'),
+          questionIds: List.generate(
+            100,
+            (i) => 'q_listening_${testNumber}_$i',
+          ),
           timeLimit: 45,
           orderIndex: 0,
         ),
@@ -306,27 +302,26 @@ class ExamCubit extends Cubit<ExamState> {
   }) async {
     // Get current user - you may need to inject AuthBloc or get userId differently
     // For now, using a placeholder
-    const userId = 'current_user_id'; 
-    
+    const userId = 'current_user_id';
+
     emit(const ExamLoadingState());
-    
+
     final result = await repository.startTestAttempt(
       userId: userId,
       testId: testId,
       examType: examType,
     );
-    
-    result.fold(
-      (failure) => emit(ExamErrorState(failure.message)),
-      (attempt) async {
-        // Load test details
-        final testResult = await repository.getTestById(testId);
-        testResult.fold(
-          (failure) => emit(ExamErrorState(failure.message)),
-          (test) => emit(TestAttemptStartedState(attempt: attempt, test: test)),
-        );
-      },
-    );
+
+    result.fold((failure) => emit(ExamErrorState(failure.message)), (
+      attempt,
+    ) async {
+      // Load test details
+      final testResult = await repository.getTestById(testId);
+      testResult.fold(
+        (failure) => emit(ExamErrorState(failure.message)),
+        (test) => emit(TestAttemptStartedState(attempt: attempt, test: test)),
+      );
+    });
   }
 
   Future<void> submitAnswer({
@@ -341,25 +336,19 @@ class ExamCubit extends Cubit<ExamState> {
       answer: answer,
       timeSpentSeconds: timeSpentSeconds,
     );
-    
-    result.fold(
-      (failure) => emit(ExamErrorState(failure.message)),
-      (_) {
-        // Answer submitted successfully
-        // Could emit a success state or update current state
-      },
-    );
+
+    result.fold((failure) => emit(ExamErrorState(failure.message)), (_) {
+      // Answer submitted successfully
+      // Could emit a success state or update current state
+    });
   }
 
   Future<void> completeTest(String attemptId) async {
     final result = await repository.completeTest(attemptId);
-    
-    result.fold(
-      (failure) => emit(ExamErrorState(failure.message)),
-      (_) {
-        // Test completed successfully
-        // Navigate to results page
-      },
-    );
+
+    result.fold((failure) => emit(ExamErrorState(failure.message)), (_) {
+      // Test completed successfully
+      // Navigate to results page
+    });
   }
 }

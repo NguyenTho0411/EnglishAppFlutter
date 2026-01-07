@@ -39,9 +39,10 @@ import '../../features/exam/presentation/pages/mock_test_execution_page.dart';
 import '../../features/exam/presentation/pages/mock_test_results_page.dart';
 import '../../features/exam/presentation/pages/exam_progress_page.dart';
 import '../../features/ai_tutor/presentation/pages/ai_tutor_page.dart';
-import '../../features/reading/presentation/pages/reading_page.dart';
 import '../../features/exam/domain/entities/exam_type.dart';
 import '../../features/exam/domain/entities/test_entity.dart';
+import '../../features/book_reading/presentation/pages/book_reading_page.dart';
+import '../../features/book_reading/presentation/pages/book_reader_page.dart';
 
 part 'routes.dart';
 
@@ -192,10 +193,10 @@ class AppRouter {
         pageBuilder: (context, state) {
           logger.f("${state.fullPath}");
           final extra = state.extra;
-          
+
           List<WordEntity> words = [];
           QuizType quizType = QuizType.meaningToWord;
-          
+
           if (extra is Map<String, dynamic>) {
             words = extra['words'] as List<WordEntity>? ?? [];
             quizType = extra['type'] as QuizType? ?? QuizType.meaningToWord;
@@ -283,20 +284,6 @@ class AppRouter {
             context: context,
             state: state,
             child: const ExamHomePage(),
-          );
-        },
-        routes: const [],
-      ),
-
-      //? Route: '/reading'
-      GoRoute(
-        path: AppRoutes.reading,
-        pageBuilder: (context, state) {
-          logger.f("${state.fullPath}");
-          return slideTransitionPage(
-            context: context,
-            state: state,
-            child: const ReadingPage(),
           );
         },
         routes: const [],
@@ -406,10 +393,7 @@ class AppRouter {
           return slideTransitionPage(
             context: context,
             state: state,
-            child: MockTestPage(
-              examType: examType,
-              testId: testId,
-            ),
+            child: MockTestPage(examType: examType, testId: testId),
           );
         },
         routes: const [],
@@ -426,9 +410,7 @@ class AppRouter {
           return slideTransitionPage(
             context: context,
             state: state,
-            child: ExamProgressPage(
-              examType: examType,
-            ),
+            child: ExamProgressPage(examType: examType),
           );
         },
         routes: const [],
@@ -445,9 +427,39 @@ class AppRouter {
           return slideTransitionPage(
             context: context,
             state: state,
-            child: AiTutorPage(
-              examType: examType,
-            ),
+            child: AiTutorPage(examType: examType),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/bookReading'
+      GoRoute(
+        path: AppRoutes.bookReading,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: const BookReadingPage(),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/bookReader'
+      GoRoute(
+        path: AppRoutes.bookReader,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+
+          final book = state.extra as Book;
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: BookReaderPage(book: book),
           );
         },
         routes: const [],
@@ -465,10 +477,7 @@ class AppRouter {
           return slideTransitionPage(
             context: context,
             state: state,
-            child: MockTestExecutionPage(
-              examType: examType,
-              test: test,
-            ),
+            child: MockTestExecutionPage(examType: examType, test: test),
           );
         },
         routes: const [],

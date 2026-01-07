@@ -46,7 +46,9 @@ class ExamRepositoryImpl implements ExamRepository {
   }
 
   @override
-  Future<Either<Failure, List<QuestionEntity>>> getQuestionsByPassage(String passageId) async {
+  Future<Either<Failure, List<QuestionEntity>>> getQuestionsByPassage(
+    String passageId,
+  ) async {
     try {
       final result = await remoteDataSource.getQuestionsByPassage(passageId);
       return Right(result);
@@ -56,7 +58,9 @@ class ExamRepositoryImpl implements ExamRepository {
   }
 
   @override
-  Future<Either<Failure, List<QuestionEntity>>> getQuestionsByAudio(String audioId) async {
+  Future<Either<Failure, List<QuestionEntity>>> getQuestionsByAudio(
+    String audioId,
+  ) async {
     try {
       final result = await remoteDataSource.getQuestionsByAudio(audioId);
       return Right(result);
@@ -173,7 +177,9 @@ class ExamRepositoryImpl implements ExamRepository {
   }
 
   @override
-  Future<Either<Failure, TestAttemptEntity>> saveTestAttempt(TestAttemptEntity attempt) async {
+  Future<Either<Failure, TestAttemptEntity>> saveTestAttempt(
+    TestAttemptEntity attempt,
+  ) async {
     try {
       final result = await remoteDataSource.saveTestAttempt(attempt as dynamic);
       return Right(result);
@@ -183,7 +189,9 @@ class ExamRepositoryImpl implements ExamRepository {
   }
 
   @override
-  Future<Either<Failure, TestAttemptEntity>> getTestAttempt(String attemptId) async {
+  Future<Either<Failure, TestAttemptEntity>> getTestAttempt(
+    String attemptId,
+  ) async {
     try {
       final result = await remoteDataSource.getTestAttempt(attemptId);
       return Right(result);
@@ -223,13 +231,12 @@ class ExamRepositoryImpl implements ExamRepository {
       // Get question to check if answer is correct
       final questionResult = await getQuestionById(questionId);
       bool isCorrect = false;
-      
-      questionResult.fold(
-        (failure) => throw Exception('Question not found'),
-        (question) {
-          isCorrect = question.isCorrectAnswer(answer);
-        },
-      );
+
+      questionResult.fold((failure) => throw Exception('Question not found'), (
+        question,
+      ) {
+        isCorrect = question.isCorrectAnswer(answer);
+      });
 
       await remoteDataSource.submitAnswer(
         attemptId: attemptId,
@@ -289,7 +296,9 @@ class ExamRepositoryImpl implements ExamRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> updateSkillProgress(SkillProgressEntity progress) async {
+  Future<Either<Failure, Unit>> updateSkillProgress(
+    SkillProgressEntity progress,
+  ) async {
     try {
       await remoteDataSource.updateSkillProgress(progress as dynamic);
       return const Right(unit);
@@ -306,15 +315,13 @@ class ExamRepositoryImpl implements ExamRepository {
   }) {
     try {
       return remoteDataSource
-          .watchSkillProgress(
-            userId: userId,
-            examType: examType,
-            skill: skill,
-          )
+          .watchSkillProgress(userId: userId, examType: examType, skill: skill)
           .map((progress) => Right<Failure, SkillProgressEntity>(progress))
-          .handleError((error) => Left<Failure, SkillProgressEntity>(
-                ServerFailure(error.toString()),
-              ));
+          .handleError(
+            (error) => Left<Failure, SkillProgressEntity>(
+              ServerFailure(error.toString()),
+            ),
+          );
     } catch (e) {
       return Stream.value(Left(ServerFailure(e.toString())));
     }
