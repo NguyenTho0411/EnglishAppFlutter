@@ -19,51 +19,11 @@ Future<void> main() async {
   Bloc.observer = AppBlocObserver();
   await EasyLocalization.ensureInitialized();
   await NotificationService.initialize();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
-  // print("--- APP STARTING ---"); 
-
-  // try {
-  //   await _runSeeder_1();
-  // } catch (e) {
-  //   print("Seeder error: $e");
-  // }
-
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await di.setUpServiceLocator();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
-  runApp(
-    const GlobalWidget(
-      child: BlocProviderScope(
-        child: MainApp(),
-      ),
-    ),
-  );
-
-}
-
-
-Future<void> _runSeeder() async {
-  final firestore = FirebaseFirestore.instance;
-  final seeder = ToeicQuestionSeeder(firestore); 
-  final seeder_1 = ToeicDataSeeder();
-  String testUserId = "6iVeBzWEAWeMjSkfgIZFsyzVH902";
-  print("Starting seed...");
-  await seeder.seedAllToeicQuestions();
-  await seeder_1.seedFullTest("ETS 2024 - Test 1");
-  print("Seed success!");
-}
-
-Future<void> _runSeeder_1() async {
-  final firestore = FirebaseFirestore.instance;
-  final seeder_1 = ToeicDataSeeder();
-  print("Starting seed...");
-  await seeder_1.seedFullTest("ETS 2024 - Test 1");
-  print("Seed success!");
+  runApp(const GlobalWidget(child: BlocProviderScope(child: MainApp())));
 }

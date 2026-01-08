@@ -196,6 +196,16 @@ class _ExamHomePageState extends State<ExamHomePage> {
                       );
                     },
                   ),
+                  const SizedBox(height: 16),
+                  _ActionCard(
+                    icon: Icons.history,
+                    title: 'Practice History',
+                    subtitle: 'View your practice results and progress',
+                    color: Colors.deepPurple,
+                    onTap: () {
+                      context.push(AppRoutes.practiceHistory);
+                    },
+                  ),
                 ],
               ),
             ),

@@ -1,0 +1,81 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Allow read/write if user is authenticated and owns the document
+      allow read, write: if isOwner(userId);
+      
+      // Test results subcollection
+      match /test_results/{resultId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Practice history subcollection
+      match /practice_history/{historyId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // User cart
+      match /cart/{cartId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Known words
+      match /known_words/{wordId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Favourites
+      match /favourites/{favouriteId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // IELTS Reading tests - public read
+    match /ielts_reading/{testId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only admin can write
+    }
+
+    // IELTS Listening tests - public read
+    match /ielts_listening/{testId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // IELTS Writing tests - public read
+    match /ielts_writing/{testId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // IELTS Speaking tests - public read
+    match /ielts_speaking/{testId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Words collection - public read
+    match /words/{wordId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

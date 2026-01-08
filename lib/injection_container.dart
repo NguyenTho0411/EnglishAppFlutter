@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import "package:connectivity_plus/connectivity_plus.dart";
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_application_1/features/exam/data/data_sources/toeic_remote_data_source.dart';
 import "package:get_it/get_it.dart";
@@ -77,11 +78,19 @@ import 'features/word/presentation/blocs/search_word/search_word_bloc.dart';
 import 'features/word/presentation/blocs/word_list/word_list_cubit.dart';
 import 'features/word/presentation/cubits/word_progress/word_progress_cubit.dart';
 import 'features/exam/data/data_sources/exam_remote_data_source.dart';
-import 'features/exam/data/repositories/exam_repository_impl.dart';import 'features/exam/data/services/firestore_exam_service.dart';import 'features/exam/domain/repositories/exam_repository.dart';
+import 'features/exam/data/repositories/exam_repository_impl.dart';
+import 'features/exam/data/services/firestore_exam_service.dart';
+import 'features/exam/domain/repositories/exam_repository.dart';
 import 'features/exam/presentation/cubits/exam_cubit.dart';
+import 'features/books/data/datasources/books_remote_data_source.dart';
+import 'features/books/data/repositories/books_repository_impl.dart';
+import 'features/books/data/services/book_chatbot_service.dart';
+import 'features/books/domain/repositories/books_repository.dart';
+import 'features/books/presentation/bloc/books_bloc.dart';
 import 'features/ai_tutor/data/services/openai_service.dart';
 
 final sl = GetIt.instance;
+GetIt get getIt => sl;
 
 Future<void> setUpServiceLocator() async {
   //! External
@@ -94,6 +103,7 @@ Future<void> setUpServiceLocator() async {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseStorage.instance);
+  sl.registerLazySingleton(() => FirebaseDatabase.instance);
 
   //! App
   sl.registerLazySingleton(() => SharedPrefManager(sl()));
@@ -275,6 +285,22 @@ sl.registerLazySingleton<ExamRepository>(
   );
   // Cubit
   sl.registerFactory(() => ExamCubit(sl()));
+
+  //! Feature - Books
+  // Data source
+  sl.registerLazySingleton<BooksRemoteDataSource>(
+    () => BooksRemoteDataSource(sl()),
+  );
+  // Repository
+  sl.registerLazySingleton<BooksRepository>(
+    () => BooksRepositoryImpl(sl()),
+  );
+  // Service
+  sl.registerLazySingleton<BookChatbotService>(
+    () => BookChatbotService(),
+  );
+  // Bloc
+  sl.registerFactory(() => BooksBloc(sl()));
 
   //! Feature - AI Tutor
   // Service
