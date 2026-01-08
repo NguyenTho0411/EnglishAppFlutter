@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/exam_type.dart';
 import '../../data/services/firestore_exam_service.dart';
 import 'listening_section_page.dart';
 import '../../utils/ielts_band_calculator.dart';
+import '../../../../features/authentication/presentation/blocs/auth/auth_bloc.dart';
 
 class ListeningPracticePage extends StatefulWidget {
   final ExamType examType;
@@ -44,13 +46,19 @@ class _ListeningPracticePageState extends State<ListeningPracticePage> {
   }
 
   void _startTest(Map<String, dynamic> test) {
+    final testId = test['testId'] ?? test['id'] ?? '';
+    final testTitle = test['title'] ?? 'Listening Test ${test['testNumber'] ?? ''}';
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ListeningSectionPage(
-          testId: test['testId'] ?? test['id'] ?? '',
+          testId: testId,
           onComplete: (results) {
             Navigator.pop(context);
+            // Add testId and testTitle to results
+            results['testId'] = testId;
+            results['testTitle'] = testTitle;
             _showResults(results);
           },
         ),
@@ -59,9 +67,27 @@ class _ListeningPracticePageState extends State<ListeningPracticePage> {
   }
 
   void _showResults(Map<String, dynamic> results) {
-    final correctCount = results['correctCount'] ?? 0;
-    final totalQuestions = results['totalQuestions'] ?? 0;
-    final bandScore = IELTSBandCalculator.calculateBandScore(correctCount, totalQuestions);
+    final correctCount = results['listeningCorrect'] ?? 0;
+    final totalQuestions = results['listeningTotal'] ?? 0;
+    final bandScore = results['listeningBand'] ?? 0.0;
+
+    // Save to Firebase
+    final user = context.read<AuthBloc>().state.user;
+    if (user != null) {
+      _examService.savePracticeResult(
+        userId: user.uid,
+        skillType: 'listening',
+        testId: results['testId'] ?? '',
+        results: {
+          'testTitle': results['testTitle'] ?? 'Listening Practice',
+          'score': correctCount,
+          'totalQuestions': totalQuestions,
+          'bandScore': bandScore,
+          'timeSpent': results['timeSpent'] ?? 0,
+          'details': results,
+        },
+      ).catchError((e) => print('Error saving result: $e'));
+    }
 
     showDialog(
       context: context,

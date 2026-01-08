@@ -20,6 +20,7 @@ import 'pages/home/home_page.dart';
 import 'pages/profile/profile_page.dart';
 import 'pages/search/search_page.dart';
 import 'widgets/menu_drawer.dart';
+import '../../../../features/books/presentation/pages/books_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -45,6 +46,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     (Assets.icons.homeFill, Assets.icons.homeOutline),
     (Assets.icons.searchFill, Assets.icons.searchOutline),
     (Assets.icons.bookFill, Assets.icons.bookOutline),
+    (Assets.icons.bookFill, Assets.icons.bookOutline), // Books tab (using same icon for now)
     (Assets.icons.profileFill, Assets.icons.profileOutline),
   ];
 
@@ -57,6 +59,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
         onShowCoach: _onShowCoachMark,
       ),
       const SearchPage(key: PageStorageKey("SearchPage")),
+      const BooksPage(key: PageStorageKey("BooksPage")),
       const ActivityPage(key: PageStorageKey("ActivityPage")),
       const ProfilePage(key: PageStorageKey("ProfilePage")),
     ];

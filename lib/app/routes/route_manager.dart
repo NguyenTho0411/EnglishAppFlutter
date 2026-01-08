@@ -38,6 +38,7 @@ import '../../features/exam/presentation/pages/mock_test_page.dart';
 import '../../features/exam/presentation/pages/mock_test_execution_page.dart';
 import '../../features/exam/presentation/pages/mock_test_results_page.dart';
 import '../../features/exam/presentation/pages/exam_progress_page.dart';
+import '../../features/exam/presentation/pages/practice_history_page.dart';
 import '../../features/ai_tutor/presentation/pages/ai_tutor_page.dart';
 import '../../features/exam/domain/entities/exam_type.dart';
 import '../../features/exam/domain/entities/test_entity.dart';
@@ -414,6 +415,21 @@ class AppRouter {
             child: ExamProgressPage(
               examType: examType,
             ),
+          );
+        },
+        routes: const [],
+      ),
+
+      //? Route: '/practiceHistory'
+      GoRoute(
+        path: AppRoutes.practiceHistory,
+        pageBuilder: (context, state) {
+          logger.f("${state.fullPath}");
+
+          return slideTransitionPage(
+            context: context,
+            state: state,
+            child: const PracticeHistoryPage(),
           );
         },
         routes: const [],

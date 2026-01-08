@@ -29,6 +29,7 @@ class AppRoutes {
   static const mockTestExecution = '/mockTestExecution';
   static const mockTestResults = '/mockTestResults';
   static const examProgress = '/examProgress';
+  static const practiceHistory = '/practiceHistory';
   static const aiTutor = '/aiTutor';
 
   static const main = '/main';

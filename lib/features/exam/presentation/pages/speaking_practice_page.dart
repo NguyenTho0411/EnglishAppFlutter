@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/exam_type.dart';
 import '../../data/services/firestore_exam_service.dart';
 import 'speaking_section_page.dart';
+import '../../../../features/authentication/presentation/blocs/auth/auth_bloc.dart';
 
 class SpeakingPracticePage extends StatefulWidget {
   final ExamType examType;
@@ -43,13 +45,19 @@ class _SpeakingPracticePageState extends State<SpeakingPracticePage> {
   }
 
   void _startTest(Map<String, dynamic> test) {
+    final testId = test['testId'] ?? test['id'] ?? '';
+    final testTitle = test['title'] ?? 'Speaking Test ${test['testNumber'] ?? ''}';
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SpeakingSectionPage(
-          testId: test['testId'] ?? test['id'] ?? '',
+          testId: testId,
           onComplete: (results) {
             Navigator.pop(context);
+            // Add testId and testTitle to results
+            results['testId'] = testId;
+            results['testTitle'] = testTitle;
             _showResults(results);
           },
         ),
@@ -58,11 +66,28 @@ class _SpeakingPracticePageState extends State<SpeakingPracticePage> {
   }
 
   void _showResults(Map<String, dynamic> results) {
-    final overallBand = results['overallBand'] ?? 0.0;
-    final fluency = results['fluency'] ?? 0.0;
-    final vocabulary = results['vocabulary'] ?? 0.0;
-    final grammar = results['grammar'] ?? 0.0;
-    final pronunciation = results['pronunciation'] ?? 0.0;
+    final overallBand = results['speakingBand'] ?? 0.0;
+    final part1Score = results['speakingPart1Score'] ?? 0.0;
+    final part2Score = results['speakingPart2Score'] ?? 0.0;
+    final part3Score = results['speakingPart3Score'] ?? 0.0;
+
+    // Save to Firebase
+    final user = context.read<AuthBloc>().state.user;
+    if (user != null) {
+      _examService.savePracticeResult(
+        userId: user.uid,
+        skillType: 'speaking',
+        testId: results['testId'] ?? '',
+        results: {
+          'testTitle': results['testTitle'] ?? 'Speaking Practice',
+          'score': 0,
+          'totalQuestions': 3,
+          'bandScore': overallBand,
+          'timeSpent': results['timeSpent'] ?? 0,
+          'details': {'part1Score': part1Score, 'part2Score': part2Score, 'part3Score': part3Score},
+        },
+      ).catchError((e) => print('Error saving result: $e'));
+    }
 
     showDialog(
       context: context,
@@ -72,12 +97,15 @@ class _SpeakingPracticePageState extends State<SpeakingPracticePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Overall Band: $overallBand', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.green)),
+            Text('Overall Band: ${overallBand.toStringAsFixed(1)}',
+                style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green)),
             SizedBox(height: 12.h),
-            Text('Fluency: $fluency', style: TextStyle(fontSize: 16.sp)),
-            Text('Vocabulary: $vocabulary', style: TextStyle(fontSize: 16.sp)),
-            Text('Grammar: $grammar', style: TextStyle(fontSize: 16.sp)),
-            Text('Pronunciation: $pronunciation', style: TextStyle(fontSize: 16.sp)),
+            Text('Part 1: ${part1Score.toStringAsFixed(1)}', style: TextStyle(fontSize: 16.sp)),
+            Text('Part 2: ${part2Score.toStringAsFixed(1)}', style: TextStyle(fontSize: 16.sp)),
+            Text('Part 3: ${part3Score.toStringAsFixed(1)}', style: TextStyle(fontSize: 16.sp)),
           ],
         ),
         actions: [

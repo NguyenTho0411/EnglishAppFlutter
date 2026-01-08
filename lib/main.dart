@@ -17,19 +17,11 @@ Future<void> main() async {
   Bloc.observer = AppBlocObserver();
   await EasyLocalization.ensureInitialized();
   await NotificationService.initialize();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await di.setUpServiceLocator();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(
-    const GlobalWidget(
-      child: BlocProviderScope(
-        child: MainApp(),
-      ),
-    ),
-  );
+  runApp(const GlobalWidget(child: BlocProviderScope(child: MainApp())));
 }

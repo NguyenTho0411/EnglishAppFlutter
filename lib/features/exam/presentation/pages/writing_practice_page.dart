@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/exam_type.dart';
 import '../../data/services/firestore_exam_service.dart';
 import 'writing_section_page.dart';
+import '../../../../features/authentication/presentation/blocs/auth/auth_bloc.dart';
 
 class WritingPracticePage extends StatefulWidget {
   final ExamType examType;
@@ -43,13 +45,19 @@ class _WritingPracticePageState extends State<WritingPracticePage> {
   }
 
   void _startTest(Map<String, dynamic> test) {
+    final testId = test['testId'] ?? test['id'] ?? '';
+    final testTitle = test['title'] ?? 'Writing Test ${test['testNumber'] ?? ''}';
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => WritingSectionPage(
-          testId: test['testId'] ?? test['id'] ?? '',
+          testId: testId,
           onComplete: (results) {
             Navigator.pop(context);
+            // Add testId and testTitle to results
+            results['testId'] = testId;
+            results['testTitle'] = testTitle;
             _showResults(results);
           },
         ),
@@ -58,9 +66,27 @@ class _WritingPracticePageState extends State<WritingPracticePage> {
   }
 
   void _showResults(Map<String, dynamic> results) {
-    final task1Band = results['task1Band'] ?? 0.0;
-    final task2Band = results['task2Band'] ?? 0.0;
-    final overallBand = ((task1Band + task2Band * 2) / 3).toStringAsFixed(1);
+    final task1Band = results['writingTask1Score'] ?? 0.0;
+    final task2Band = results['writingTask2Score'] ?? 0.0;
+    final overallBand = results['writingBand'] ?? 0.0;
+
+    // Save to Firebase
+    final user = context.read<AuthBloc>().state.user;
+    if (user != null) {
+      _examService.savePracticeResult(
+        userId: user.uid,
+        skillType: 'writing',
+        testId: results['testId'] ?? '',
+        results: {
+          'testTitle': results['testTitle'] ?? 'Writing Practice',
+          'score': 0,
+          'totalQuestions': 2,
+          'bandScore': overallBand,
+          'timeSpent': results['timeSpent'] ?? 0,
+          'details': {'task1Band': task1Band, 'task2Band': task2Band, 'overallBand': overallBand},
+        },
+      ).catchError((e) => print('Error saving result: $e'));
+    }
 
     showDialog(
       context: context,
@@ -70,11 +96,11 @@ class _WritingPracticePageState extends State<WritingPracticePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Task 1 Band: $task1Band', style: TextStyle(fontSize: 18.sp)),
+            Text('Task 1 Band: ${task1Band.toStringAsFixed(1)}', style: TextStyle(fontSize: 18.sp)),
             SizedBox(height: 8.h),
-            Text('Task 2 Band: $task2Band', style: TextStyle(fontSize: 18.sp)),
+            Text('Task 2 Band: ${task2Band.toStringAsFixed(1)}', style: TextStyle(fontSize: 18.sp)),
             SizedBox(height: 8.h),
-            Text('Overall Band: $overallBand', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.green)),
+            Text('Overall Band: ${overallBand.toStringAsFixed(1)}', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.green)),
           ],
         ),
         actions: [

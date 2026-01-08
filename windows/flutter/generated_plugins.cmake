@@ -10,9 +10,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_auth
   firebase_core
   firebase_storage
-  flutter_sound
   flutter_tts
   permission_handler_windows
+  syncfusion_pdfviewer_windows
   url_launcher_windows
 )
 
