@@ -621,6 +621,7 @@ class _QuestionWidget extends StatelessWidget {
       );
     }).toList();
   }
+  
 
   List<Widget> _buildTrueFalseOptions() {
     final options = question.questionType == QuestionType.trueFalseNotGiven
