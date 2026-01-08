@@ -30,6 +30,11 @@ class AppRoutes {
   static const mockTestResults = '/mockTestResults';
   static const examProgress = '/examProgress';
   static const aiTutor = '/aiTutor';
+  static const toeicReading = '/toeicReading';
+static const toeicListening = '/toeicListening';
+  static const fullToeicTests = '/fullToeicTests';
+  static const toeicTestExecution = '/toeicTestExecution';
+  static const toeicTestResults = '/toeicTestResults';
 
   static const main = '/main';
   static const home = '$main/home';
@@ -37,4 +42,6 @@ class AppRoutes {
   static const activity = '$main/activity';
   static const profile = '$main/profile';
   static const profileEdit = '$profile/edit';
+
+  static const toeicPractice = '/toeicPractice'; 
 }

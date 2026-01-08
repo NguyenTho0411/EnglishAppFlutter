@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/features/exam/presentation/pages/toeic_full_test_execution_page.dart';
+import 'package:flutter_application_1/features/exam/presentation/pages/toeic_full_test_selection_page.dart';
+import 'package:flutter_application_1/features/exam/presentation/pages/toeic_practice_page.dart';
+import 'package:flutter_application_1/features/exam/presentation/pages/toeic_test_result_page.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_logger.dart';
@@ -41,6 +45,8 @@ import '../../features/exam/presentation/pages/exam_progress_page.dart';
 import '../../features/ai_tutor/presentation/pages/ai_tutor_page.dart';
 import '../../features/exam/domain/entities/exam_type.dart';
 import '../../features/exam/domain/entities/test_entity.dart';
+import '../../features/exam/presentation/pages/listening_practice_toeic_page.dart';
+import '../../features/exam/presentation/pages/reading_practice_toeic_page.dart';
 
 part 'routes.dart';
 
@@ -459,6 +465,8 @@ class AppRouter {
         routes: const [],
       ),
 
+      
+
       //? Route: '/mockTestResults'
       GoRoute(
         path: AppRoutes.mockTestResults,
@@ -527,8 +535,67 @@ class AppRouter {
             },
             routes: const [],
           ),
+          
         ],
       ),
+
+   GoRoute(
+  path: AppRoutes.fullToeicTests,
+  name: "fullToeicTests",
+  pageBuilder: (context, state) => slideTransitionPage(
+    context: context,
+    state: state,
+    child: const ToeicFullTestSelectionPage(),
+  ),
+),
+
+GoRoute(
+  path: AppRoutes.toeicTestExecution, // '/toeicTestExecution'
+  name: "toeicTestExecution",
+  pageBuilder: (context, state) {
+    // 1. Lấy dữ liệu từ extra (được gửi từ context.push)
+    final args = state.extra as Map<String, dynamic>;
+    
+    // 2. Truyền vào Page
+    return slideTransitionPage(
+      context: context,
+      state: state,
+      child: ToeicFullTestExecutionPage(
+        examType: args['examType'], // Key phải khớp với hàm _startTest
+        test: args['test'],         // Key phải khớp với hàm _startTest
+      ),
+    );
+  },
+),
+
+GoRoute(
+  path: '/toeicTestResults',
+  builder: (context, state) {
+    final results = state.extra as Map<String, dynamic>;
+    return ToeicTestResultPage(testResults: results);
+  },
+),
+
+
+
+GoRoute(
+  path: AppRoutes.toeicReading,
+  name: "toeicReading",
+  pageBuilder: (context, state) => slideTransitionPage(
+    context: context,
+    state: state,
+    child: const ReadingPracticeToeicPage(),
+  ),
+),
+GoRoute(
+  path: AppRoutes.toeicListening,
+  name: "toeicListening",
+  pageBuilder: (context, state) => slideTransitionPage(
+    context: context,
+    state: state,
+    child: const ListeningPracticeToeicPage(),
+  ),
+),
     ],
   );
 }

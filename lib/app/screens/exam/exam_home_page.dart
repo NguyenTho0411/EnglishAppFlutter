@@ -51,14 +51,17 @@ class _ExamHomePageState extends State<ExamHomePage> {
         _SkillCard(
           skill: SkillType.reading,
           examType: _selectedExam,
-          onTap: () => _navigateTo(AppRoutes.readingPractice),
+          onTap: () => _navigateTo(AppRoutes.toeicReading),
         ),
         _SkillCard(
           skill: SkillType.listening,
           examType: _selectedExam,
-          onTap: () => _navigateTo(AppRoutes.listeningPractice),
+          onTap: () => _navigateTo(AppRoutes.toeicListening),
         ),
-        // Bạn có thể thêm các thẻ đặc thù cho TOEIC ở đây
+        
+        _buildFullTestCard(
+          onTap: () => _navigateTo(AppRoutes.fullToeicTests), // Dẫn đến trang danh sách đề
+        ),
       ];
     }
   }
@@ -255,6 +258,7 @@ class _ExamTypeCard extends StatelessWidget {
   }
 }
 
+
 class _SkillCard extends StatelessWidget {
   final SkillType skill;
   final ExamType examType;
@@ -433,4 +437,47 @@ class _ActionCard extends StatelessWidget {
       ),
     );
   }
+
+  
+}
+
+// Widget riêng cho Full Test để tùy biến giao diện khác biệt
+Widget _buildFullTestCard({required VoidCallback onTap}) {
+  return Card(
+    elevation: 4,
+    // Màu sắc nổi bật hơn các card kỹ năng thường
+    color: Colors.indigo.shade50, 
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: BorderSide(color: Colors.indigo.withOpacity(0.5)),
+    ),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icon riêng cho bài thi thử
+            const Icon(Icons.assignment_turned_in, size: 40, color: Colors.indigo),
+            const SizedBox(height: 8),
+            const Text(
+              "Full Test",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "200 Questions • 120 Mins",
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

@@ -95,7 +95,7 @@ class TestAttemptModel extends TestAttemptEntity {
   }
 }
 
-class UserAnswerModel extends UserAnswer {
+class   UserAnswerModel extends UserAnswer {
   const UserAnswerModel({
     required super.questionId,
     required super.answer,
@@ -181,4 +181,25 @@ class SectionScoreModel extends SectionScore {
       'timeSpentSeconds': timeSpentSeconds,
     };
   }
+
+  SectionScoreModel copyWith({
+    SkillType? skill,
+    int? totalQuestions,
+    int? correctAnswers,
+    double? accuracy,
+    double? bandScore,
+    int? rawScore,
+    int? timeSpentSeconds,
+  }) {
+    return SectionScoreModel(
+      skill: skill ?? this.skill,
+      totalQuestions: totalQuestions ?? this.totalQuestions,
+      correctAnswers: correctAnswers ?? this.correctAnswers,
+      accuracy: accuracy ?? this.accuracy,
+      bandScore: bandScore ?? this.bandScore,
+      rawScore: rawScore ?? this.rawScore,
+      timeSpentSeconds: timeSpentSeconds ?? this.timeSpentSeconds,
+    );
+  }
+
 }

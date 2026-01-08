@@ -51,24 +51,30 @@ class QuestionModel extends QuestionEntity {
 
   factory QuestionModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    T safeEnum<T>(List<T> values, bool Function(T) test, T defaultValue) {
+    return values.cast<T?>().firstWhere((e) => e != null && test(e), orElse: () => defaultValue)!;
+  }
     return QuestionModel(
-      id: doc.id,
-      examType: ExamType.values.firstWhere((e) => e.code == data['examType']),
-      skill: SkillType.values.firstWhere((e) => e.name == data['skill']),
-      questionType: QuestionType.values.firstWhere((e) => e.displayName == data['questionType']),
-      difficulty: DifficultyLevel.values.firstWhere((e) => e.name == data['difficulty']),
-      section: data['section'] as String,
-      part: data['part'] as int,
-      orderIndex: data['orderIndex'] as int,
-      questionText: data['questionText'] as String,
-      options: data['options'] != null ? List<String>.from(data['options']) : null,
-      correctAnswer: data['correctAnswer'] as String?,
-      correctAnswers: data['correctAnswers'] != null ? List<String>.from(data['correctAnswers']) : null,
-      explanation: data['explanation'] as String?,
-      passageId: data['passageId'] as String?,
-      audioId: data['audioId'] as String?,
-      metadata: data['metadata'] as Map<String, dynamic>?,
-      isPremium: data['isPremium'] as bool? ?? false,
+    id: doc.id,
+    // Fix lỗi No Element bằng cách cung cấp default value
+    examType: safeEnum(ExamType.values, (e) => e.code == data['examType'], ExamType.toeic),
+    skill: safeEnum(SkillType.values, (e) => e.name == data['skill'], SkillType.listening),
+    questionType: safeEnum(QuestionType.values, (e) => e.displayName == data['questionType'], QuestionType.toeicPhotographs),
+    difficulty: safeEnum(DifficultyLevel.values, (e) => e.name == data['difficulty'], DifficultyLevel.intermediate),
+    section: data['section'] as String? ?? '',
+    part: data['part'] as int? ?? 1,
+    orderIndex: data['orderIndex'] as int? ?? 0,
+    questionText: data['questionText'] as String? ?? '',
+    options: data['options'] != null ? List<String>.from(data['options']) : null,
+    correctAnswer: data['correctAnswer'] as String?,
+    correctAnswers: data['correctAnswers'] != null ? List<String>.from(data['correctAnswers']) : null,
+    explanation: data['explanation'] as String?,
+    passageId: data['passageId'] as String?,
+    
+    audioId: (data['audioId'] ?? data['audioUrl']) as String?, 
+    
+    metadata: data['metadata'] as Map<String, dynamic>?,
+    isPremium: data['isPremium'] as bool? ?? false,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
     );
@@ -96,4 +102,31 @@ class QuestionModel extends QuestionEntity {
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
+
+  // Khúc này dùng để fix lỗi ở Repository
+  QuestionEntity toEntity() {
+    return QuestionEntity(
+      id: id,
+      examType: examType,
+      skill: skill,
+      questionType: questionType,
+      difficulty: difficulty,
+      section: section,
+      part: part,
+      orderIndex: orderIndex,
+      questionText: questionText,
+      options: options,
+      correctAnswer: correctAnswer,
+      correctAnswers: correctAnswers,
+      explanation: explanation,
+      passageId: passageId,
+      audioId: audioId,
+      metadata: metadata,
+      isPremium: isPremium,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  
 }

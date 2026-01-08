@@ -3,6 +3,7 @@ import "package:connectivity_plus/connectivity_plus.dart";
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_application_1/features/exam/data/data_sources/toeic_remote_data_source.dart';
 import "package:get_it/get_it.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -253,6 +254,11 @@ Future<void> setUpServiceLocator() async {
   // Cubit
   sl.registerFactory(() => GameQuizCubit(sl(), sl()));
 
+// PHẢI CÓ DÒNG NÀY: Đăng ký ToeicRemoteDataSource
+  sl.registerLazySingleton<ToeicRemoteDataSource>(
+    () => ToeicRemoteDataSource(sl()),
+  );
+
   //! Feature - Exam (IELTS/TOEIC)
   // Data source
   sl.registerLazySingleton<ExamRemoteDataSource>(
@@ -261,8 +267,11 @@ Future<void> setUpServiceLocator() async {
   sl.registerLazySingleton<FirestoreExamService>(
     () => FirestoreExamService(),
   );  // Repository
-  sl.registerLazySingleton<ExamRepository>(
-    () => ExamRepositoryImpl(sl()),
+sl.registerLazySingleton<ExamRepository>(
+    () => ExamRepositoryImpl(
+      sl(), // Cái này dành cho remoteDataSource
+      sl(), // Cái này dành cho toeicDataSource (Lỗi do thiếu đăng ký cái này đây!)
+    ),
   );
   // Cubit
   sl.registerFactory(() => ExamCubit(sl()));

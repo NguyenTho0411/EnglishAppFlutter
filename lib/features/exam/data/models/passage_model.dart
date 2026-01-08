@@ -37,19 +37,42 @@ class PassageModel extends PassageEntity {
 
   factory PassageModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    T safeEnum<T>(List<T> values, bool Function(T) test, T defaultValue) {
+      try {
+        return values.firstWhere(test, orElse: () => defaultValue);
+      } catch (_) {
+        return defaultValue;
+      }
+    }
+    
     return PassageModel(
       id: doc.id,
-      examType: ExamType.values.firstWhere((e) => e.code == data['examType']),
-      title: data['title'] as String,
-      content: data['content'] as String,
-      wordCount: data['wordCount'] as int,
-      difficulty: DifficultyLevel.values.firstWhere((e) => e.name == data['difficulty']),
-      topic: data['topic'] as String,
-      tags: List<String>.from(data['tags'] ?? []),
-      estimatedReadingTime: data['estimatedReadingTime'] as int,
+      examType: safeEnum(
+        ExamType.values, 
+        (e) => e.code == data['examType'], 
+        ExamType.toeic
+      ),
+      title: data['title'] as String? ?? 'Untitled',
+      content: data['content'] as String? ?? '',
+      wordCount: data['wordCount'] as int? ?? 0,
+difficulty: safeEnum(
+  DifficultyLevel.values,
+  (e) => e.name.toLowerCase() ==
+      (data['difficulty'] as String? ?? '').toLowerCase(),
+  DifficultyLevel.intermediate,
+),
+
+      topic: data['topic'] as String? ?? 'General',
+      tags: data['tags'] != null ? List<String>.from(data['tags']) : [],
+      estimatedReadingTime: data['estimatedReadingTime'] as int? ?? 0,
       isPremium: data['isPremium'] as bool? ?? false,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      
+     createdAt: data['createdAt'] == null
+    ? DateTime.fromMillisecondsSinceEpoch(0)
+    : (data['createdAt'] as Timestamp).toDate(),
+updatedAt: data['updatedAt'] == null
+    ? DateTime.fromMillisecondsSinceEpoch(0)
+    : (data['updatedAt'] as Timestamp).toDate(),
     );
   }
 

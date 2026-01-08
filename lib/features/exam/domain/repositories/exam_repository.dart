@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter_application_1/features/exam/data/models/test_attempt_model.dart';
 import '../../../../core/errors/failure.dart';
 import '../entities/question_entity.dart';
 import '../entities/passage_entity.dart';
@@ -9,6 +10,7 @@ import '../entities/skill_progress_entity.dart';
 import '../entities/exam_type.dart';
 
 abstract class ExamRepository {
+  
   // Questions
   Future<Either<Failure, List<QuestionEntity>>> getQuestions({
     required ExamType examType,
@@ -98,4 +100,46 @@ abstract class ExamRepository {
     required ExamType examType,
     required SkillType skill,
   });
+
+
+  /// Lấy câu hỏi theo TOEIC Part (1-7)
+  Future<Either<Failure, List<QuestionEntity>>> getQuestionsByToeicPart({
+    required ToeicPart part,
+    DifficultyLevel? difficulty,
+    int? limit,
+  });
+
+  /// Nộp bài phần Listening (Part 1-4) để tính Scaled Score riêng
+  Future<Either<Failure, Map<String, dynamic>>> submitToeicListening({
+    required String attemptId,
+    required String userId,
+    required Map<String, UserAnswerModel> answers,
+  });
+
+  /// Nộp bài phần Reading (Part 5-7)
+  Future<Either<Failure, Map<String, dynamic>>> submitToeicReading({
+    required String attemptId,
+    required String userId,
+    required Map<String, UserAnswerModel> answers,
+  });
+
+  /// Lấy thống kê chuyên sâu cho TOEIC (Average Part score, Scaled Score history)
+  Future<Either<Failure, Map<String, dynamic>>> getToeicStatistics(String userId);
+
+
+// Thêm vào trong abstract class ExamRepository
+
+  /// Lưu kết quả luyện tập lẻ (không phải full test) để cập nhật thống kê
+  Future<Either<Failure, Unit>> savePracticeResult({
+    required String userId,
+    required SkillType skill,
+    required int correctCount,
+    required int totalCount,
+    required int timeSpentSeconds,
+    int? partNumber, // Ví dụ: Part 5, 6, hoặc 7
+  });
+
+  Future<Either<Failure, List<QuestionEntity>>> getQuestionsByTestId(String testId);
+  
 }
+

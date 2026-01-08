@@ -58,6 +58,7 @@ dependencies:
   flutter_tts: ^4.2.0
   flutter_sound: ^9.2.13  # For audio recording (more stable alternative)
   path_provider: ^2.1.1  # For file paths
+  just_audio: ^0.9.36
 
   # App Updates & Reviews
   in_app_update: ^4.2.2

@@ -27,11 +27,20 @@ class ExamLoadedState extends ExamState {
   final List<QuestionEntity> questions;
   final TestAttemptEntity? currentAttempt;
 
+final int? bestScore;
+  final int? averageScore;
+  final int? totalTests;
+final Map<String, String> practiceAnswers;
+
   const ExamLoadedState({
     this.passage,
     this.audio,
     this.questions = const [],
     this.currentAttempt,
+    this.bestScore,
+    this.averageScore,
+    this.totalTests,
+    this.practiceAnswers = const {}, 
   });
 
   ExamLoadedState copyWith({
@@ -39,18 +48,27 @@ class ExamLoadedState extends ExamState {
     AudioEntity? audio,
     List<QuestionEntity>? questions,
     TestAttemptEntity? currentAttempt,
+    Map<String, String>? practiceAnswers, 
   }) {
     return ExamLoadedState(
       passage: passage ?? this.passage,
       audio: audio ?? this.audio,
       questions: questions ?? this.questions,
       currentAttempt: currentAttempt ?? this.currentAttempt,
+
+      bestScore: bestScore ?? this.bestScore,
+      averageScore: averageScore ?? this.averageScore,
+      totalTests: totalTests ?? this.totalTests,
+      practiceAnswers: practiceAnswers ?? this.practiceAnswers, 
     );
   }
 
   @override
-  List<Object?> get props => [passage, audio, questions, currentAttempt];
-}
+List<Object?> get props => [
+    passage, audio, questions, currentAttempt, 
+    bestScore, averageScore, totalTests, practiceAnswers ];
+
+  }
 
 class ExamErrorState extends ExamState {
   final String message;
@@ -92,4 +110,33 @@ class TestAttemptStartedState extends ExamState {
 
   @override
   List<Object?> get props => [attempt, test];
+}
+
+class ToeicStatisticsLoadedState extends ExamState {
+  final int bestScore;
+  final int averageScore;
+  final int totalTests;
+
+  const ToeicStatisticsLoadedState({
+    required this.bestScore,
+    required this.averageScore,
+    required this.totalTests,
+  });
+
+  @override
+  List<Object?> get props => [bestScore, averageScore, totalTests];
+}
+
+class ToeicSubmissionSuccessState extends ExamState {
+  final Map<String, dynamic> resultData;
+
+  const ToeicSubmissionSuccessState(this.resultData);
+
+  @override
+  List<Object?> get props => [resultData];
+}
+
+class PassageLoadedState extends ExamState {
+  final PassageEntity passage;
+  PassageLoadedState(this.passage);
 }
